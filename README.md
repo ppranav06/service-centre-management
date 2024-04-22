@@ -1,2 +1,3 @@
 # ticketing-system-service-center
-This software aims to create a ticketing system for two-wheeler service centers. 
+
+A web-based Job-card type Management system for two-wheeler service centers, written in python.
