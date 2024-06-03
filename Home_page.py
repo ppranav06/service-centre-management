@@ -9,11 +9,15 @@ def job_page():
     lb=tk.Label(job_frame,text="JOB CARD\n\n",font=("Bold",30))
     lb.pack()
     job_frame.pack(pady=20)
+
 def cus_page():
     cus_frame=tk.Frame(main_frame)
     lb=tk.Label(cus_frame,text="CUSTOMER CARD",font=("Bole",30))
     lb.pack()
     cus_frame.pack(pady=20)
+
+def employe_page():
+    pass
 
 def hide_indicators():
     job_indicate.config(bg="#c3c3c3")
