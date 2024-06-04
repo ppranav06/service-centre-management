@@ -1,18 +1,69 @@
 import tkinter as tk
 
+
 from tkinter import messagebox
 import sqlite3
+from tkinter import *
+from tkinter import ttk
 
 root=tk.Tk()
 root.geometry("1000x500")
 root.title("Vehicle Service Centre")
 options_frame=tk.Frame(root,bg="#A89DC7")
 
-
+main_frame = tk.Frame(root, bg="#A89DC7")
+main_frame.pack(fill="both", expand=True)
 
 def job_page():
+
+    def on_select(event):
+        selected_value = com.get()
+        print(f"Selected: {selected_value}")
+
+    def on_select1(event):
+        selected_value = com1.get()
+        print(f"Selected: {selected_value}")
+
+    def on_select2(event):
+        selected_value = com2.get()
+        print(f"Selected: {selected_value}")
+
     job_frame=tk.Frame(main_frame)
-    lb=tk.Label(job_frame,text="JOB CARD\n\n",font=("Bold",30))
+
+    label_vehicle_service=tk.Label(main_frame,text="service type",font=("Ariel",12),bg="#ccc")
+    label_vehicle_service.place(width=100,height=20,x=25,y=200)
+
+    var=StringVar()
+    com=ttk.Combobox(main_frame,width=27,textvariable=var)
+    com["values"]=("engine oil", "tyre", "others")
+    com.current()
+    com.bind("<<ComboboxSelected>>", on_select)
+    #com.place(x=150,y=200)
+    com.place(x=150,y=200)
+
+    label_vehicle_no=tk.Label(main_frame,text="vehicle number",font=("Ariel",12),bg="#ccc")
+    label_vehicle_no.place(width=120,height=20,x=25,y=250)
+
+    var1=StringVar()
+    com1=ttk.Combobox(main_frame,width=27)
+    com1["values"]=("123","345","678","367","900")
+    com1.current()
+    com1.bind("<<ComboboxSelected>>", on_select1)
+
+    com1.place(x=150,y=250)
+
+    label_others=tk.Label(main_frame,text="others",font=("Ariel",12),bg="#ccc")
+    label_others.place(width=75,height=20,x=25,y=300)
+
+    var2=StringVar()
+    com2=ttk.Combobox(main_frame,width=27)
+    com2["values"]=("others 1","others2","others3")
+    com2.current()
+    com2.bind("<<ComboboxSelected>>", on_select2)
+
+    com2.place(x=150,y=300)
+
+    lb=tk.Label(job_frame,text="JOB CARD",font=("Bold",30))
     lb.pack()
     job_frame.pack(pady=20)
 
