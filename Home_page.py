@@ -11,111 +11,106 @@ options_frame=tk.Frame(root,bg="#A89DC7")
 
 
 def job_page():
-    job_frame=tk.Frame(main_frame)
-    lb=tk.Label(job_frame,text="JOB CARD\n\n",font=("Bold",30))
-    lb.pack()
-    job_frame.pack(pady=20)
+	job_frame=tk.Frame(main_frame)
+	lb=tk.Label(job_frame,text="JOB CARD\n\n",font=("Bold",30))
+	lb.pack()
+	job_frame.pack(pady=20)
 
 def cus_page():
-    cus_frame=tk.Frame(main_frame)
-    lb=tk.Label(cus_frame,text="CUSTOMER CARD",font=("Bold",30))
-    lb.pack()
-    cus_frame.pack(pady=20)
-    
+	"""Page for entry of customer data"""
 
-    conn = sqlite3.connect('customer_database.db')
-    c = conn.cursor()
+	cus_frame=tk.Frame(main_frame)
+	lb=tk.Label(cus_frame,text="CUSTOMER CARD",font=("Bold",30))
+	lb.pack()
+	cus_frame.pack(pady=20)
+	
+	db = sqlite3.connect('service-centre.db')
+	c = db.cursor()
+	
+	c.execute('''CREATE TABLE IF NOT EXISTS customers(vehicle_no varchar(10) PRIMARY KEY, 
+			  name TEXT NOT NULL, address TEXT NOT NULL, mail_id VARCHAR, phone_no integer NOT NULL, phone_no_alt integer);''')
+	db.commit()
 
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS customers
-             (vehicle_number VARCHAR, customer_name VARCHAR, customer_address VARCHAR,customer_mail_id VARCHAR, customer_whatsapp VARCHAR, customer_alternate VARCHAR)''')
-    conn.commit()
-    
+	font = ("Arial", 12)
+	label_color = "#ccc"
+	entry_color = "#ccc"
+	
+	vehicle_label = tk.Label(root, text="Vehicle Number:",font=font,bg=label_color)
+	vehicle_label.place(x=200, y=100)
+	vehicle_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	vehicle_entry.place(x=350, y=100)
 
-    font = ("Arial", 12)
-    label_color = "#ccc"
-    entry_color = "#ccc"
+	name_label = tk.Label(root, text="Name:",font=font,bg=label_color)
+	name_label.place(x=200, y=140)
+	name_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	name_entry.place(x=350, y=140)
 
-    
-    vehicle_label = tk.Label(root, text="Vehicle Number:",font=font,bg=label_color)
-    vehicle_label.place(x=200, y=100)
-    vehicle_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
-    vehicle_entry.place(x=350, y=100)
+	address_label = tk.Label(root, text="Address:",font=font,bg=label_color)
+	address_label.place(x=200, y=180)
+	address_entry1 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry1.place(x=350, y=180)
+	address_entry2 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry2.place(x=350, y=220)
+	address_entry3 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry3.place(x=350, y=260)
 
-    name_label = tk.Label(root, text="Name:",font=font,bg=label_color)
-    name_label.place(x=200, y=140)
-    name_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
-    name_entry.place(x=350, y=140)
+	mail_label = tk.Label(root, text="Mail ID:",font=font,bg=label_color)
+	mail_label.place(x=200, y=300)
+	mail_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	mail_entry.place(x=350, y=300)
 
-    address_label = tk.Label(root, text="Address:",font=font,bg=label_color)
-    address_label.place(x=200, y=180)
-    address_entry1 = tk.Entry(root, width=30, font=font, bg=entry_color)
-    address_entry1.place(x=350, y=180)
-    address_entry2 = tk.Entry(root, width=30, font=font, bg=entry_color)
-    address_entry2.place(x=350, y=220)
-    address_entry3 = tk.Entry(root, width=30, font=font, bg=entry_color)
-    address_entry3.place(x=350, y=260)
+	phone_no_label = tk.Label(root, text="Whatsapp Number:",font=font,bg=label_color)
+	phone_no_label.place(x=200, y=340)
+	phone_no_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	phone_no_entry.place(x=350, y=340)
 
-    
-    mail_label = tk.Label(root, text="Mail ID:",font=font,bg=label_color)
-    mail_label.place(x=200, y=300)
-    mail_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
-    mail_entry.place(x=350, y=300)
-
-    whatsapp_label = tk.Label(root, text="Whatsapp Number:",font=font,bg=label_color)
-    whatsapp_label.place(x=200, y=340)
-    whatsapp_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
-    whatsapp_entry.place(x=350, y=340)
-
-    alternate_label = tk.Label(root, text="Alternate Number:",font=font,bg=label_color)
-    alternate_label.place(x=200, y=380)
-    alternate_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
-    alternate_entry.place(x=350, y=380)
-    def add_customer():
-     vehicle_number = vehicle_entry.get()
-     name = name_entry.get()
-     address = f"{address_entry1.get()} {address_entry2.get()} {address_entry3.get()}"
-     mail_id = mail_entry.get()
-     whatsapp = whatsapp_entry.get()
-     alternate = alternate_entry.get()
-     
-     c.execute("INSERT INTO customers (vehicle_number, name, address, mail_id, whatsapp, alternate) VALUES (?, ?, ?, ?, ?, ?)",
-          (vehicle_number, name, address, mail_id, whatsapp, alternate))
-     conn.commit()
-     
-
-     
-     print("Customer added successfully!")
-     messagebox.showinfo("Message", "Customer added successfully!")
-     
-    add_button = tk.Button(root, text="Add Customer",font=font,fg="#000000",command=add_customer)
-    add_button.place(x=350, y=440)
+	alternate_phone_label = tk.Label(root, text="Alternate Number:",font=font,bg=label_color)
+	alternate_phone_label.place(x=200, y=380)
+	alternate_phone_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	alternate_phone_entry.place(x=350, y=380)
+	def add_customer():
+		vehicle_number = vehicle_entry.get()
+		name = name_entry.get()
+		address = f"{address_entry1.get()} {address_entry2.get()} {address_entry3.get()}"
+		mail_id = mail_entry.get()
+		phone_no = phone_no_entry.get()
+		alternate = alternate_phone_entry.get()
+		
+		c.execute("INSERT INTO customers (vehicle_no, name, address, mail_id, phone_no, phone_no_alt) VALUES (?, ?, ?, ?, ?, ?)",
+			 (vehicle_number, name, address, mail_id, phone_no, alternate))
+		db.commit()
+		
+		print("Customer added successfully!")
+		messagebox.showinfo("Message", "Customer added successfully!")
+	 
+	add_button = tk.Button(root, text="Add Customer",font=font,fg="#000000",command=add_customer)
+	add_button.place(x=350, y=440)
    
 def assign_page():
-     assign_frame=tk.Frame(main_frame)
-     lb=tk.Label(assign_frame,text="ASSIGNED",font=("Bold",30))
-     lb.pack()
-     assign_frame.pack(pady=20)
+	assign_frame=tk.Frame(main_frame)
+	lb=tk.Label(assign_frame,text="ASSIGNED",font=("Bold",30))
+	lb.pack()
+	assign_frame.pack(pady=20)
 
 def unassign_page():
-    unassign_frame=tk.Frame(main_frame)
-    lb=tk.Label(unassign_frame,text="UNASSIGNED",font=("Bold",30))
-    lb.pack()
-    unassign_frame.pack(pady=20)
+	unassign_frame=tk.Frame(main_frame)
+	lb=tk.Label(unassign_frame,text="UNASSIGNED",font=("Bold",30))
+	lb.pack()
+	unassign_frame.pack(pady=20)
 
 def hide_indicators():
-     job_indicate.config(bg="#c3c3c3")
-     cus_indicate.config(bg="#c3c3c3")
-     assign_indicate.config(bg="#c3c3c3")
-     unassigned_indicate.config(bg="#c3c3c3")
+	job_indicate.config(bg="#c3c3c3")
+	cus_indicate.config(bg="#c3c3c3")
+	assign_indicate.config(bg="#c3c3c3")
+	unassigned_indicate.config(bg="#c3c3c3")
 def delete_pages():
-     for frame in main_frame.winfo_children():
-        frame.destroy()
+	for frame in main_frame.winfo_children():
+		frame.destroy()
 def indicate(lb,page):
-     hide_indicators()
-     lb.config(bg="#0B0707")
-     delete_pages()
-     page()
+	hide_indicators()
+	lb.config(bg="#0B0707")
+	delete_pages()
+	page()
 
 job_btn=tk.Button(options_frame,text="Job Card",font=("Bold",15),fg="#000000",bd=0,bg="#c3c3c3",command=lambda: indicate(job_indicate,job_page))
 job_btn.place(x=10,y=350)
