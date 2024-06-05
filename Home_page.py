@@ -79,6 +79,8 @@ def cus_page():
 	c.execute('''CREATE TABLE IF NOT EXISTS customers(vehicle_no varchar(10) PRIMARY KEY, 
 			  name TEXT NOT NULL, address TEXT NOT NULL, mail_id VARCHAR, phone_no integer NOT NULL, phone_no_alt integer);''')
 	db.commit()
+   
+        
 
 	font = ("Arial", 12)
 	label_color = "#ccc"
