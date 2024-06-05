@@ -148,11 +148,18 @@ def unassign_page():
 	lb.pack()
 	unassign_frame.pack(pady=20)
 
+def employee_page():
+	employee_frame=tk.Frame(main_frame)
+	lb=tk.Label(employee_frame,text="EMPLOYEE",font=("Bold",30))
+	lb.pack()
+	employee_frame.pack(pady=20)
+
 def hide_indicators():
 	job_indicate.config(bg="#c3c3c3")
 	cus_indicate.config(bg="#c3c3c3")
 	assign_indicate.config(bg="#c3c3c3")
 	unassigned_indicate.config(bg="#c3c3c3")
+	employee_indicate.config(bg="#c3c3c3")
 def delete_pages():
 	for frame in main_frame.winfo_children():
 		frame.destroy()
@@ -180,7 +187,13 @@ assigned_btn.place(x=10,y=50)
 assign_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 assign_indicate.place(x=3,y=50,width=5,height=40)
 
-unassigned_btn=tk.Button(options_frame,text="Unassigned",font=("Bold",15),fg="#000000",bd=0,bg="#c3c3c3",command=lambda:indicate(unassigned_indicate,unassign_page))
+employee_btn=tk.Button(options_frame,text= "Employee",font=("Bold",15),fg="#000000",bd=0,bg="#c3c3c3",command=lambda: indicate(employee_indicate,assign_page))
+employee_btn.place(x=10,y=150)
+
+employee_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
+employee_indicate.place(x=3,y=150,width=5,height=40)
+
+unassigned_btn=tk.Button(options_frame,text="Unassigned",font=("Bold",15),fg="#000000",bd=0,bg="#c3c3c3",command=lambda:indicate(unassigned_indicate,employee_page))
 unassigned_btn.place(x=10,y=100)
 
 unassigned_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
