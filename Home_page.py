@@ -71,8 +71,7 @@ def cus_page():
 
 	cus_frame=tk.Frame(main_frame)
 	lb=tk.Label(cus_frame,text="CUSTOMER CARD",font=("Bold",30))
-	lb.pack()
-	cus_frame.pack(pady=20)
+	
 	
 	db = sqlite3.connect('service-centre.db')
 	c = db.cursor()
@@ -85,38 +84,38 @@ def cus_page():
 	label_color = "#ccc"
 	entry_color = "#ccc"
 	
-	vehicle_label = tk.Label(root, text="Vehicle Number:",font=font,bg=label_color)
+	vehicle_label = tk.Label(main_frame, text="Vehicle Number:",font=font,bg=label_color)
 	vehicle_label.place(x=200, y=100)
-	vehicle_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	vehicle_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	vehicle_entry.place(x=350, y=100)
 
-	name_label = tk.Label(root, text="Name:",font=font,bg=label_color)
+	name_label = tk.Label(main_frame, text="Name:",font=font,bg=label_color)
 	name_label.place(x=200, y=140)
-	name_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	name_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	name_entry.place(x=350, y=140)
 
-	address_label = tk.Label(root, text="Address:",font=font,bg=label_color)
+	address_label = tk.Label(main_frame, text="Address:",font=font,bg=label_color)
 	address_label.place(x=200, y=180)
-	address_entry1 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry1 = tk.Entry(main_frame, width=30, font=font, bg=entry_color)
 	address_entry1.place(x=350, y=180)
-	address_entry2 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry2 = tk.Entry(main_frame, width=30, font=font, bg=entry_color)
 	address_entry2.place(x=350, y=220)
-	address_entry3 = tk.Entry(root, width=30, font=font, bg=entry_color)
+	address_entry3 = tk.Entry(main_frame, width=30, font=font, bg=entry_color)
 	address_entry3.place(x=350, y=260)
 
-	mail_label = tk.Label(root, text="Mail ID:",font=font,bg=label_color)
+	mail_label = tk.Label(main_frame, text="Mail ID:",font=font,bg=label_color)
 	mail_label.place(x=200, y=300)
-	mail_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	mail_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	mail_entry.place(x=350, y=300)
 
-	phone_no_label = tk.Label(root, text="Whatsapp Number:",font=font,bg=label_color)
+	phone_no_label = tk.Label(main_frame, text="Whatsapp Number:",font=font,bg=label_color)
 	phone_no_label.place(x=200, y=340)
-	phone_no_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	phone_no_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	phone_no_entry.place(x=350, y=340)
 
-	alternate_phone_label = tk.Label(root, text="Alternate Number:",font=font,bg=label_color)
+	alternate_phone_label = tk.Label(main_frame, text="Alternate Number:",font=font,bg=label_color)
 	alternate_phone_label.place(x=200, y=380)
-	alternate_phone_entry = tk.Entry(root, width=30,font=font,bg=entry_color)
+	alternate_phone_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	alternate_phone_entry.place(x=350, y=380)
 	def add_customer():
 		vehicle_number = vehicle_entry.get()
@@ -133,8 +132,11 @@ def cus_page():
 		print("Customer added successfully!")
 		messagebox.showinfo("Message", "Customer added successfully!")
 	 
-	add_button = tk.Button(root, text="Add Customer",font=font,fg="#000000",command=add_customer)
+	add_button = tk.Button(main_frame, text="Add Customer",font=font,fg="#000000",command=add_customer)
 	add_button.place(x=350, y=440)
+	lb.pack()
+	cus_frame.pack(pady=20)
+	
    
 def assign_page():
 	assign_frame=tk.Frame(main_frame)
