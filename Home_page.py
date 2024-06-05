@@ -60,13 +60,7 @@ def job_page():
 	com2["values"]=("others 1","others2","others3")
 	com2.current()
 	com2.bind("<<ComboboxSelected>>", on_select2)
-
 	com2.place(x=150,y=300)
-
-	lb=tk.Label(job_frame,text="JOB CARD",font=("Bold",30))
-	lb.pack()
-	
-	job_frame.pack(pady=20)
 	job_frame=tk.Frame(main_frame)
 	lb=tk.Label(job_frame,text="JOB CARD\n\n",font=("Bold",30))
 	lb.pack()
