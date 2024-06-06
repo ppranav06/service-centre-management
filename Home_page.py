@@ -1,9 +1,8 @@
 import tkinter as tk
-
-
 from tkinter import messagebox
 import sqlite3
 from tkinter import *
+
 from tkinter import ttk
 
 root=tk.Tk()
@@ -127,17 +126,24 @@ def cus_page():
 		phone_no = phone_no_entry.get()
 		alternate = alternate_phone_entry.get()
 		
-		c.execute("INSERT INTO customers (vehicle_no, name, address, mail_id, phone_no, phone_no_alt) VALUES (?, ?, ?, ?, ?, ?)",
-			 (vehicle_number, name, address, mail_id, phone_no, alternate))
+		
+		
 		db.commit()
 		
 		print("Customer added successfully!")
 		messagebox.showinfo("Message", "Customer added successfully!")
+		print("Vehicle Number:",vehicle_number)
+		print("Name:",name)
+		print("Address:",address)
+		print("Mail ID:",mail_id)
+		print("Whatsapp Number:",phone_no)
+		print("Alternate Number:",alternate)
 	 
 	add_button = tk.Button(main_frame, text="Add Customer",font=font,fg="#000000",command=add_customer)
 	add_button.place(x=350, y=440)
 	lb.pack()
 	cus_frame.pack(pady=20)
+	
 	
    
 def assign_page():
