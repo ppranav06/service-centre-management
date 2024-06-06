@@ -3,7 +3,6 @@ from datetime import datetime
 import sqlite3
 
 db = sqlite3.connect('service-centre.db')
-c = db.cursor()
 
 class JobCard:
     def __init__(self, job_id, registration_number, owner_details, engine_number, service_type, expected_delivery_date, priority):
@@ -25,24 +24,12 @@ class JobCard:
     
 
 class CustomerCard:
-    def __init__(self, vehicle_no, name, address, mail_id, phone_no, phone_no_2 = None):
+    def __init__(self, name, address, phone_no, phone_no_2 = None):
         # self.customer_id = customer_id
-        self.vehicle_no = vehicle_no
         self.name = name
         self.address = address
-        self.mail_id = mail_id
         self.phone_no = phone_no
         self.phone_no_2 = phone_no_2
-    
-    def __repr__(self) -> str:
-        return ",".join([self.vehicle_no, self.name, self.address, self.mail_id, self.phone_no, self.phone_no_2])
-    
-    @classmethod
-    def get_customer(self, vehicle_no:str):
-        """Fetching data for entering vehicle in job card"""
-        # c.execute(f"SELECT * FROM customers WHERE vehicle_no={vehicle_no};")
-        c.execute(f"SELECT vehicle_no, name FROM customers;")
-        return c.fetchall()
 
 class EmployeeCard:
     def __init__(self, employee_id, name):
