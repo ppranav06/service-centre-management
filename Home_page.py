@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 import sqlite3
 from tkinter import *
-
 from tkinter import ttk
 
 root=tk.Tk()
