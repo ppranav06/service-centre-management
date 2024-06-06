@@ -137,11 +137,24 @@ def cus_page():
           print("Mail ID:",mail_id)
           print("Whatsapp Number:",phone_no)
           print("Alternate Number:",alternate)
+          clear_form()
+
       
      add_button = tk.Button(main_frame, text="Add Customer",font=font,fg="#000000",command=add_customer)
      add_button.place(x=350, y=440)
      lb.pack()
      cus_frame.pack(pady=20)
+
+     def clear_form():
+         vehicle_entry.delete(0,tk.END)
+         name_entry.delete(0, tk.END)
+         address_entry1.delete(0,tk.END)
+         address_entry2.delete(0,tk.END)
+         address_entry3.delete(0,tk.END)
+         mail_entry.delete(0,tk.END)
+         phone_no_entry.delete(0,tk.END)
+         alternate_phone_entry.delete(0,tk.END)
+     
      
      
    
