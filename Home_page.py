@@ -232,7 +232,7 @@ def job_page():
 def cus_page():
 	"""Page for entry of customer data"""
 	cus_frame=tk.Frame(main_frame)
-	lb=tk.Label(cus_frame,text="CUSTOMER CARD",font=("Bold",30))
+	lb=tk.Label(cus_frame,text="Customer Card",font=("Ariel",15))
 	
 	
 	db = sqlite3.connect('service-centre.db')
@@ -365,9 +365,15 @@ def unassign_page():
 	lb.pack()
 	unassign_frame.pack(pady=20)
 
+def spares_page():
+      spares_frame=tk.Frame(main_frame)
+      lb=tk.Label(spares_frame,text="Spare Parts",font=("ariel",15))
+      lb.pack()
+      spares_frame.pack(pady=20)
+
 def employee_page():
 	employee_frame=tk.Frame(main_frame)
-	lb=tk.Label(employee_frame,text="EMPLOYEE",font=("Bold",30))
+	lb=tk.Label(employee_frame,text="Employee",font=("Ariel",15))
 	lb.pack()
 	employee_frame.pack(pady=20)
 	def create_employee_list(root):
@@ -425,6 +431,8 @@ def hide_indicators():
 	assign_indicate.config(bg="#c3c3c3")
 	unassigned_indicate.config(bg="#c3c3c3")
 	employee_indicate.config(bg="#c3c3c3")
+	spares_indicate.config(bg="#c3c3c3")
+
 def delete_pages():
 	for frame in main_frame.winfo_children():
 		 frame.destroy()
@@ -463,6 +471,12 @@ unassigned_btn.place(x=10,y=100)
 
 unassigned_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 unassigned_indicate.place(x=3,y=100,width=5,height=40)
+
+spares_btn=tk.Button(options_frame,text="Spare Parts",font=("Bold",15),fg="#000000",bd=0,bg="#c3c3c3",comman=lambda: indicate(spares_indicate,spares_page))
+spares_btn.place(x=10,y=200)
+
+spares_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
+spares_indicate.place(x=3,y=200,width=5,height=40)
 
 options_frame.pack(side=tk.LEFT)
 options_frame.pack_propagate(False)
