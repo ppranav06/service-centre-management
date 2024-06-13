@@ -463,10 +463,7 @@ def spares_page():
 
 
           def buy_stocks():
-            spares_frame=tk.Frame(main_frame)
-            lb=tk.Label(spares_frame,text="Spare Parts",font=("ariel",15))
-            lb.pack()
-            spares_frame.pack(pady=20)
+           
       
             description= description_entry.get()
 
