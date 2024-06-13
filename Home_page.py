@@ -406,6 +406,7 @@ def spares_page():
       lb=tk.Label(spares_frame,text="Spare Parts",font=("ariel",15))
       lb.pack()
       spares_frame.pack(pady=20)
+      
 
       
       tree = ttk.Treeview(spares_frame)
@@ -427,19 +428,107 @@ def spares_page():
       tree.heading("Quantity", text="Quantity", anchor=tk.E)
 
       spare_parts =[
-     {"name": "Brake", "part_number": "SP-001", "cost": 100, "quantity": 10},
-     {"name": "Battery", "part_number": "SP-002", "cost": 200, "quantity": 5},
-     {"name": "Axles", "part_number": "SP-003", "cost": 150, "quantity": 15},
-     {"name": "Piston", "part_number": "SP-004", "cost": 50, "quantity": 20},
-     {"name": "Radiator", "part_number": "SP-005", "cost":300 , "quantity": 7},
-     {"name": "Shock Absorbers", "part_number": "SP-006", "cost":250 , "quantity": 12},
-     {"name": "Muffler", "part_number": "SP-007", "cost":180 , "quantity": 9},
-     {"name": "Catalytic Converter", "part_number": "SP-008", "cost":400 , "quantity": 4},
-     {"name": "Alternator", "part_number": "SP-009", "cost":350 , "quantity": 6},]
+     {"name": "Spark plugs", "part_number": "SP-001", "cost": 200, "quantity": 10},
+     {"name": "Air filter", "part_number": "SP-002", "cost": 300, "quantity": 4},
+     {"name": "Oil filter", "part_number": "SP-003", "cost": 150, "quantity": 15},
+     {"name": "Brake pads", "part_number": "SP-004", "cost": 500, "quantity": 20},
+     {"name": "Chain sprockets", "part_number": "SP-005", "cost":800 , "quantity": 7},
+     {"name": "Engine oil", "part_number": "SP-006", "cost":400 , "quantity": 12},
+     {"name": "Clutch cable", "part_number": "SP-007", "cost":100 , "quantity": 9},
+     {"name": "Brake cable", "part_number": "SP-008", "cost":120 , "quantity": 4},
+     {"name": "Tyre", "part_number": "SP-009", "cost":2000 , "quantity": 6},
+     {"name": "Battery", "part_number": "SP-010", "cost":1500 , "quantity": 4}
+     ]
       for spare_part in spare_parts:
             tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
             tree.pack(fill=tk.BOTH, expand=1)
+
+      
             
+
+      def low_stock_window():
+                low_stock_window = tk.Toplevel(spares_frame)
+                low_stock_window.title("Low Stock Spare Parts")
+                low_stock_tree = ttk.Treeview(low_stock_window)
+                low_stock_tree["columns"] = ("Description", "Part Number", "Cost", "Quantity")
+
+    
+                low_stock_tree.column("#0", width=0, stretch=tk.NO)
+                low_stock_tree.column("Description", anchor=tk.W, width=200)
+                low_stock_tree.column("Part Number", anchor=tk.W, width=150)
+                low_stock_tree.column("Cost", anchor=tk.E, width=100)
+                low_stock_tree.column("Quantity", anchor=tk.E, width=100)
+
+                low_stock_tree.heading("#0", text="", anchor=tk.W)
+                low_stock_tree.heading("Description", text="Description", anchor=tk.W)
+                low_stock_tree.heading("Part Number", text="Part Number", anchor=tk.W)
+                low_stock_tree.heading("Cost", text="Cost", anchor=tk.E)
+                low_stock_tree.heading("Quantity", text="Quantity", anchor=tk.E)
+
+                
+
+                for spare_part in spare_parts:
+                    if spare_part["quantity"] < 5:
+                        low_stock_tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+                        low_stock_tree.pack(fill=tk.BOTH, expand=1)
+                        def add_button_clicked():
+                            for spare_part in spare_parts:
+                                if spare_part["quantity"] < 5:
+                                    low_stock_window()
+                                    break
+                                else:
+                                    add_spare_part_window()
+      add_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
+      add_button.place(x=350, y=380)
+      lb.pack()
+      spares_frame.pack(pady=20)
+
+      def buy_stocks_window():
+          buy_window = tk.Toplevel(spares_frame)
+          buy_window.title("Buy Stocks from Company")
+
+          tk.Label(buy_window, text="Description:").pack()
+          description_entry= tk.Entry(buy_window)
+          description_entry.pack()
+
+          tk.Label(buy_window, text="Quantity:").pack()
+          quantity_entry = tk.Entry(buy_window)
+          quantity_entry.pack()
+
+          
+
+          tk.Label(buy_window, text="Part Number:").pack()
+          part_number_entry = tk.Entry(buy_window)
+          part_number_entry.pack()
+
+
+
+          def buy_stocks():
+            description= description_entry.get()
+
+            quantity = int(quantity_entry.get())
+
+            print("Description:",description)
+            print("Quantity:",quantity)
+
+        
+            spare_part = min(spare_parts, key=lambda x: x["quantity"])
+
+        
+            spare_part["quantity"] += quantity
+
+            for item in tree.get_children():
+              if tree.item(item, "values")[0] == spare_part["name"]:
+                  tree.item(item, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+
+                  buy_window.destroy()
+
+
+      add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
+      add_button.place(x=350, y=440)
+      lb.pack()
+      spares_frame.pack(pady=20)
+      
 
 def employee_page():
 	employee_frame=tk.Frame(main_frame)
