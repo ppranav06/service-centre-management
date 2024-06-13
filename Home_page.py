@@ -51,7 +51,6 @@ def validate_customer_name(customer_name):
 
 def job_page():
     root = tk.Tk()
-    root.geometry("1000x700")
     root.title("Job Card")
 
     spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil", "Clutch cable", "Brake cable", "Tyres", "Battery"]
@@ -118,7 +117,7 @@ def job_page():
         combo.after_id = combo.after(1000, filter_combobox)
 
     def add_row():
-        row = len(spare_part_combos)+1
+        row = len(spare_part_combos)
 
         spare_part_combo = ttk.Combobox(table_frame)
         service_type_combo = ttk.Combobox(table_frame)
@@ -157,10 +156,6 @@ def job_page():
         service_type_combo.bind("<<ComboboxSelected>>", lambda event: calculate_rate())
         quantity_entry.bind("<FocusOut>", update_inventory)
 
-    ttk.Label(table_frame, text="Spare Parts").grid(row=0, column=0, padx=5, pady=5)
-    ttk.Label(table_frame, text="Quantity").grid(row=0, column=1, padx=5, pady=5)
-    ttk.Label(table_frame, text="Service Type").grid(row=0, column=2, padx=5, pady=5)
-    
     for _ in range(10):
         add_row()
 
@@ -170,8 +165,7 @@ def job_page():
     def generate_bill():
         vehicle_number = vehicle_entry.get().strip()
         customer_name = customer_entry.get().strip()
-        customer_complaint = complaint_text.get("1.0", tk.END).strip()
-        service_type = service_type_combo.get().strip()
+
         # Validate vehicle number and customer name
         if not validate_vehicle_number(vehicle_number):
             messagebox.showerror("Error", "Invalid vehicle number format. Please enter in the format: TN30BX1234")
@@ -181,12 +175,7 @@ def job_page():
             messagebox.showerror("Error", "Invalid customer name. Please use only alphabets and spaces.")
             return
 
-        if service_type == "Free":
-            messagebox.showinfo("Info", "No bill generated for free service.")
-            return
-
         bill_text = f"Bill for {customer_name} (Vehicle No: {vehicle_number}):\n\n"
-        bill_text += f"Complaints: {customer_complaint}\n\n"
         for row in range(len(spare_part_combos)):
             part = spare_part_combos[row].get().split(' - ')[0]
             quantity = quantity_entries[row].get()
@@ -200,14 +189,12 @@ def job_page():
     def clear_fields():
         vehicle_entry.delete(0, tk.END)
         customer_entry.delete(0, tk.END)
-        complaint_text.delete("1.0", tk.END)
         for combo in spare_part_combos:
             combo.set("")
         for entry in quantity_entries:
             entry.delete(0, tk.END)
         for combo1 in service_type_combos:
             combo1.set("")
-        service_type_combo.set("")
         total_label.config(text="Total: 0")
         bill_label.config(text="")
 
@@ -223,20 +210,12 @@ def job_page():
     customer_entry = ttk.Entry(input_frame)
     customer_entry.grid(row=1, column=1, padx=5, pady=5)
 
-    ttk.Label(input_frame, text="Complaints:").grid(row=3, column=0, padx=5, pady=5)
-    complaint_text = tk.Text(input_frame, height=5, width=40)
-    complaint_text.grid(row=3, column=1, padx=5, pady=5)
-
-    ttk.Label(input_frame, text="Service Type:").grid(row=2, column=0, padx=5, pady=5)
-    service_type_combo = ttk.Combobox(input_frame, values=["Free", "Paid", "Running"])
-    service_type_combo.grid(row=2, column=1, padx=5, pady=5)
-
     # Buttons for generating bill, clearing fields, and saving bill
     generate_button = ttk.Button(input_frame, text="Generate Bill", command=generate_bill)
-    generate_button.grid(row=4, column=0, pady=10)
+    generate_button.grid(row=2, column=0, pady=10)
 
     clear_button = ttk.Button(input_frame, text="Clear Fields", command=clear_fields)
-    clear_button.grid(row=4, column=1,pady=10)
+    clear_button.grid(row=2, column=1, pady=10)
 
 	# Bill display label
     bill_label = ttk.Label(root, text="", justify="left")
@@ -464,7 +443,7 @@ def spares_page():
                                 else:
                                     add_spare_part_window()
       add_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
-      add_button.place(x=350, y=380)
+      add_button.place(x=350, y=350)
       lb.pack()
       spares_frame.pack(pady=20)
 
@@ -485,16 +464,26 @@ def spares_page():
           tk.Label(buy_window, text="Part Number:").pack()
           part_number_entry = tk.Entry(buy_window)
           part_number_entry.pack()
-
+          
 
 
           def buy_stocks():
+            spares_frame=tk.Frame(main_frame)
+            lb=tk.Label(spares_frame,text="Spare Parts",font=("ariel",15))
+            lb.pack()
+            spares_frame.pack(pady=20)
+      
             description= description_entry.get()
 
             quantity = int(quantity_entry.get())
+            
 
             print("Description:",description)
             print("Quantity:",quantity)
+            
+
+            
+            
 
         
             spare_part = min(spare_parts, key=lambda x: x["quantity"])
@@ -502,18 +491,56 @@ def spares_page():
         
             spare_part["quantity"] += quantity
 
-            for item in tree.get_children():
+            """for item in tree.get_children():
               if tree.item(item, "values")[0] == spare_part["name"]:
                   tree.item(item, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
 
-                  buy_window.destroy()
+                  buy_window.destroy()"""
+
+            
+                      
+                      
+		
+          buy_button = tk.Button(main_frame, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
+          buy_button.place(x=450,y=400)
+          
+          
+          
+          
+          
 
 
       add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
-      add_button.place(x=350, y=440)
+      add_button.place(x=250, y=400)
       lb.pack()
       spares_frame.pack(pady=20)
+
       
+      
+
+     
+      
+
+
+     
+      
+       
+       
+      
+
+      
+
+
+      
+
+      
+
+            
+
+
+
+            
+           
 
 def employee_page():
 	employee_frame=tk.Frame(main_frame)
