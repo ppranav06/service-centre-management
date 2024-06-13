@@ -435,13 +435,8 @@ def spares_page():
                     if spare_part["quantity"] < 5:
                         low_stock_tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
                         low_stock_tree.pack(fill=tk.BOTH, expand=1)
-                        def add_button_clicked():
-                            for spare_part in spare_parts:
-                                if spare_part["quantity"] < 5:
-                                    low_stock_window()
-                                    break
-                                else:
-                                    add_spare_part_window()
+                        
+                        
       add_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
       add_button.place(x=350, y=350)
       lb.pack()
