@@ -2,8 +2,13 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import *
 from tkinter import ttk
-from backend import *
 import re
+
+from backend import *
+from spare_parts import *
+
+# Connecting to databases
+sparesDB = SpareParts('spare_parts.db')
 
 root1=tk.Tk()
 root1.geometry("1000x500")
@@ -431,65 +436,68 @@ def spares_page():
 	tree = ttk.Treeview(spares_frame)
 
 
-	tree["columns"] = ("Description", "Part Number", "Cost", "Quantity")
+	tree["columns"] = ("Description", "Part Number", "Rate", "Quantity")
 
 
 	tree.column("#0", width=0, stretch=tk.NO)
 	tree.column("Description", anchor=tk.W, width=200)
 	tree.column("Part Number", anchor=tk.W, width=150)
-	tree.column("Cost", anchor=tk.E, width=100)
+	tree.column("Rate", anchor=tk.E, width=100)
 	tree.column("Quantity", anchor=tk.E, width=100)
 
 	tree.heading("#0", text="", anchor=tk.W)
 	tree.heading("Description", text="Description", anchor=tk.W)
 	tree.heading("Part Number", text="Part Number", anchor=tk.W)
-	tree.heading("Cost", text="Cost", anchor=tk.E)
+	tree.heading("Rate", text="Rate", anchor=tk.E)
 	tree.heading("Quantity", text="Quantity", anchor=tk.E)
 
-	spare_parts =[
-	{"name": "Spark plugs", "part_number": "SP-001", "cost": 200, "quantity": 10},
-	{"name": "Air filter", "part_number": "SP-002", "cost": 300, "quantity": 4},
-	{"name": "Oil filter", "part_number": "SP-003", "cost": 150, "quantity": 15},
-	{"name": "Brake pads", "part_number": "SP-004", "cost": 500, "quantity": 20},
-	{"name": "Chain sprockets", "part_number": "SP-005", "cost":800 , "quantity": 7},
-	{"name": "Engine oil", "part_number": "SP-006", "cost":400 , "quantity": 12},
-	{"name": "Clutch cable", "part_number": "SP-007", "cost":100 , "quantity": 9},
-	{"name": "Brake cable", "part_number": "SP-008", "cost":120 , "quantity": 4},
-	{"name": "Tyre", "part_number": "SP-009", "cost":2000 , "quantity": 6},
-	{"name": "Battery", "part_number": "SP-010", "cost":1500 , "quantity": 4}
-	]
+	# spare_parts =[
+	# {"description": "Spark plugs", "part_number": "SP-001", "rate": 200, "quantity": 10},
+	# {"description": "Air filter", "part_number": "SP-002", "rate": 300, "quantity": 4},
+	# {"description": "Oil filter", "part_number": "SP-003", "rate": 150, "quantity": 15},
+	# {"description": "Brake pads", "part_number": "SP-004", "rate": 500, "quantity": 20},
+	# {"description": "Chain sprockets", "part_number": "SP-005", "rate":800 , "quantity": 7},
+	# {"description": "Engine oil", "part_number": "SP-006", "rate":400 , "quantity": 12},
+	# {"description": "Clutch cable", "part_number": "SP-007", "rate":100 , "quantity": 9},
+	# {"description": "Brake cable", "part_number": "SP-008", "rate":120 , "quantity": 4},
+	# {"description": "Tyre", "part_number": "SP-009", "rate":2000 , "quantity": 6},
+	# {"description": "Battery", "part_number": "SP-010", "rate":1500 , "quantity": 4}
+	# ]
+
+	spare_parts = sparesDB.fetch_data_dict()
+
 	for spare_part in spare_parts:
-		tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+		tree.insert("", tk.END, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 		tree.pack(fill=tk.BOTH, expand=1)
 	  
 	def low_stock_window():
 			low_stock_window = tk.Toplevel(spares_frame)
 			low_stock_window.title("Low Stock Spare Parts")
 			low_stock_tree = ttk.Treeview(low_stock_window)
-			low_stock_tree["columns"] = ("Description", "Part Number", "Cost", "Quantity")
+			low_stock_tree["columns"] = ("Description", "Part Number", "Rate", "Quantity")
 
 
 			low_stock_tree.column("#0", width=0, stretch=tk.NO)
 			low_stock_tree.column("Description", anchor=tk.W, width=200)
 			low_stock_tree.column("Part Number", anchor=tk.W, width=150)
-			low_stock_tree.column("Cost", anchor=tk.E, width=100)
+			low_stock_tree.column("Rate", anchor=tk.E, width=100)
 			low_stock_tree.column("Quantity", anchor=tk.E, width=100)
 
 			low_stock_tree.heading("#0", text="", anchor=tk.W)
 			low_stock_tree.heading("Description", text="Description", anchor=tk.W)
 			low_stock_tree.heading("Part Number", text="Part Number", anchor=tk.W)
-			low_stock_tree.heading("Cost", text="Cost", anchor=tk.E)
+			low_stock_tree.heading("Rate", text="Rate", anchor=tk.E)
 			low_stock_tree.heading("Quantity", text="Quantity", anchor=tk.E)
 			   
 
 			for spare_part in spare_parts:
-				if spare_part["quantity"] < 5:
-					low_stock_tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+				if spare_part["qty"] < 5:
+					low_stock_tree.insert("", tk.END, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 					low_stock_tree.pack(fill=tk.BOTH, expand=1)
 						
 						
-	add_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
-	add_button.place(x=350, y=350)
+	low_stock_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
+	low_stock_button.place(x=350, y=350)
 	lb.pack()
 	spares_frame.pack(pady=20)
 
@@ -497,42 +505,46 @@ def spares_page():
 		buy_window = tk.Toplevel(spares_frame)
 		buy_window.title("Buy Stocks from Company")
 
-		tk.Label(buy_window, text="Description:").pack()
-		description_entry= tk.Entry(buy_window)
-		description_entry.pack()
+		descriptions = [spare["description"] for spare in spare_parts]
 
-		tk.Label(buy_window, text="Quantity:").pack()
-		quantity_entry = tk.Entry(buy_window)
-		quantity_entry.pack()
+		# Combobox for descriptions 
+		tk.Label(buy_window, text="Description:").pack()
+		description_entry = ttk.Combobox(buy_window, values=descriptions)
+		# description_entry.set("Select or enter a description")
+		description_entry.pack()
 
 		tk.Label(buy_window, text="Part Number:").pack()
 		part_number_entry = tk.Entry(buy_window)
 		part_number_entry.pack()
+
+		tk.Label(buy_window, text="Quantity:").pack()
+		quantity_entry = tk.Entry(buy_window)
+		quantity_entry.pack()
 		  
 
 		def buy_stocks():
 			description= description_entry.get()
-			quantity = int(quantity_entry.get())
+			qty = int(quantity_entry.get())
 			
 			print("Description:",description)
-			print("Quantity:",quantity)
-			spare_part = min(spare_parts, key=lambda x: x["quantity"])
+			print("Quantity:",qty)
+			spare_part = min(spare_parts, key=lambda x: x["qty"])
 
-			spare_part["quantity"] += quantity
+			spare_part["qty"] += qty
 
 			"""for item in tree.get_children():
-				if tree.item(item, "values")[0] == spare_part["name"]:
-					tree.item(item, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+				if tree.item(item, "values")[0] == spare_part["description"]:
+					tree.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 
 					buy_window.destroy()"""
 
-			buy_button = tk.Button(main_frame, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
-			buy_button.place(x=450,y=400)
+		buy_button = tk.Button(buy_window, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
+		buy_button.place(x=450,y=400)
 
-		add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
-		add_button.place(x=250, y=400)
-		lb.pack()
-		spares_frame.pack(pady=20)
+	add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
+	add_button.place(x=250, y=400)
+	lb.pack()
+	spares_frame.pack(pady=20)
 
 
 def employee_page():
@@ -542,11 +554,11 @@ def employee_page():
 	employee_frame.pack(pady=20)
 	
 	def create_employee_list(root):
-		tree = ttk.Treeview(root, columns=("id", "name", "designation","department","experience"), show='headings')
+		tree = ttk.Treeview(root, columns=("id", "description", "designation","department","experience"), show='headings')
 		tree.column("id", anchor=tk.CENTER, width=50)
 		tree.heading("id", text="ID")
-		tree.column("name", anchor=tk.CENTER, width=100)
-		tree.heading("name", text="Name")
+		tree.column("description", anchor=tk.CENTER, width=100)
+		tree.heading("description", text="Name")
 		tree.column("designation", anchor=tk.CENTER, width=150)
 		tree.heading("designation", text="Designation")
 		tree.column("department", anchor=tk.CENTER, width=200)
