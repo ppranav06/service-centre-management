@@ -392,6 +392,40 @@ def spares_page():
       lb.pack()
       spares_frame.pack(pady=20)
 
+      
+      tree = ttk.Treeview(spares_frame)
+
+
+      tree["columns"] = ("Description", "Part Number", "Cost", "Quantity")
+
+
+      tree.column("#0", width=0, stretch=tk.NO)
+      tree.column("Description", anchor=tk.W, width=200)
+      tree.column("Part Number", anchor=tk.W, width=150)
+      tree.column("Cost", anchor=tk.E, width=100)
+      tree.column("Quantity", anchor=tk.E, width=100)
+
+      tree.heading("#0", text="", anchor=tk.W)
+      tree.heading("Description", text="Description", anchor=tk.W)
+      tree.heading("Part Number", text="Part Number", anchor=tk.W)
+      tree.heading("Cost", text="Cost", anchor=tk.E)
+      tree.heading("Quantity", text="Quantity", anchor=tk.E)
+
+      spare_parts =[
+     {"name": "Brake", "part_number": "SP-001", "cost": 100, "quantity": 10},
+     {"name": "Battery", "part_number": "SP-002", "cost": 200, "quantity": 5},
+     {"name": "Axles", "part_number": "SP-003", "cost": 150, "quantity": 15},
+     {"name": "Piston", "part_number": "SP-004", "cost": 50, "quantity": 20},
+     {"name": "Radiator", "part_number": "SP-005", "cost":300 , "quantity": 7},
+     {"name": "Shock Absorbers", "part_number": "SP-006", "cost":250 , "quantity": 12},
+     {"name": "Muffler", "part_number": "SP-007", "cost":180 , "quantity": 9},
+     {"name": "Catalytic Converter", "part_number": "SP-008", "cost":400 , "quantity": 4},
+     {"name": "Alternator", "part_number": "SP-009", "cost":350 , "quantity": 6},]
+      for spare_part in spare_parts:
+            tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
+            tree.pack(fill=tk.BOTH, expand=1)
+            
+
 def employee_page():
 	employee_frame=tk.Frame(main_frame)
 	lb=tk.Label(employee_frame,text="Employee",font=("Ariel",15))
