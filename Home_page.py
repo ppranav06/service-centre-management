@@ -13,11 +13,20 @@ options_frame=tk.Frame(root1,bg="#A89DC7")
 main_frame = tk.Frame(root1, bg="#A89DC7")
 main_frame.pack(fill="both", expand=True)
 
+
+
 def validate_vehicle_number(vehicle_number):
+    # Regular expression to match Indian vehicle number format
     pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{2}[0-9]{1,4}$'
+
+    # Compile the regex pattern
     regex = re.compile(pattern)
+
+    # Check if the provided vehicle number matches the pattern
     if not regex.match(vehicle_number):
         return False
+    
+    # Additional validation for the state code (first two characters)
     state_codes = ['AP', 'AR', 'AS', 'BR', 'CG', 'GA', 'GJ', 'HR', 'HP', 'JH', 'KA', 'KL', 'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OD', 'PB', 'RJ', 'SK', 'TN', 'TS', 'TR', 'UP', 'UK', 'WB', 'AN', 'CH', 'DH', 'DD', 'DL', 'LD', 'PY']
 
     state_code = vehicle_number[:2]
@@ -28,8 +37,13 @@ def validate_vehicle_number(vehicle_number):
 
 # Function to validate customer name
 def validate_customer_name(customer_name):
+    # Regular expression to match alphabetic characters and spaces
     pattern = r'^[a-zA-Z\s]+$'
+
+    # Compile the regex pattern
     regex = re.compile(pattern)
+
+    # Check if the provided customer name matches the pattern
     if not regex.match(customer_name):
         return False
 
@@ -142,13 +156,6 @@ def job_page():
         service_type_combo.bind("<<ComboboxSelected>>", lambda event: calculate_rate())
         quantity_entry.bind("<FocusOut>", update_inventory)
 
-<<<<<<< HEAD
-=======
-    ttk.Label(table_frame, text="Spare Parts").grid(row=0, column=0, padx=5, pady=5)
-    ttk.Label(table_frame, text="Quantity").grid(row=0, column=1, padx=5, pady=5)
-    ttk.Label(table_frame, text="Service Type").grid(row=0, column=2, padx=5, pady=5)
-
->>>>>>> 9120cf46d1f054ad9b20eceab4fdd95b8269ffd5
     for _ in range(10):
         add_row()
 
@@ -315,68 +322,39 @@ def cus_page():
 	# lb=tk.Label(assign_frame,text="ASSIGNED",font=("Bold",30))
 	# lb.pack()
 	# assign_frame.pack(pady=20)
+# Example data: list of tuples (job_id, mechanic, task, status)
 assigned_jobs = [
-    (1, 'KA02AB1234', 1, 'AA839CC9392034', 'PAID', '2024-06-01', 1, 'pending', 1),
-    (2, 'MH12CD5678', 1, 'BB937DD3492038', 'FREE', '2024-06-02', 2, 'pending', 1),
-    (3, 'RJ20EF9012', 2, 'CC034EE5492039', 'PAID', '2024-06-03', 3, 'in_progress', 2),
-    (4, 'DL09GH3456', 3, 'DD235FF6492040', 'FREE', '2024-06-04', 1, 'completed', 3),
-    (5, 'TN18IJ7890', 2, 'EE456GG7492041', 'PAID', '2024-06-05', 2, 'pending', 1),
-    (6, 'GJ03KL2345', 4, 'FF567HH8492042', 'PAID', '2024-06-06', 3, 'in_progress', 2),
-    (7, 'UP17MN6789', 5, 'GG678II9492043', 'FREE', '2024-06-07', 1, 'completed', 3),
-    (8, 'AP21OP1234', 2, 'HH789JJ0492044', 'PAID', '2024-06-08', 2, 'pending', 1),
-    (9, 'BR05QR5678', 1, 'II890KK1492045', 'FREE', '2024-06-09', 3, 'in_progress', 2),
-    (10, 'MP29ST9012', 3, 'JJ901LL2492046', 'PAID', '2024-06-10', 1, 'completed', 1),
-    (11, 'KL07UV3456', 4, 'KK012MM3492047', 'FREE', '2024-06-11', 2, 'pending', 1),
-    (12, 'HR04WX7890', 5, 'LL123NN4492048', 'PAID', '2024-06-12', 3, 'in_progress', 2),
-    (13, 'TG30YZ2345', 1, 'MM234OO5492049', 'FREE', '2024-06-13', 1, 'completed', 3),
-    (14, 'GJ22AB5678', 2, 'NN345PP6492050', 'PAID', '2024-06-14', 2, 'pending', 1),
-    (15, 'KL11CD9012', 3, 'OO456QQ7492051', 'FREE', '2024-06-15', 3, 'in_progress', 2),
-    (16, 'HR05EF3456', 4, 'PP567RR8492052', 'PAID', '2024-06-16', 1, 'completed', 1),
-    (17, 'TG28GH7890', 5, 'QQ678SS9492053', 'FREE', '2024-06-17', 2, 'pending', 1),
-    (18, 'GJ04IJ1234', 1, 'RR789TT0492054', 'PAID', '2024-06-18', 3, 'in_progress', 2),
-    (19, 'HR29KL5678', 2, 'SS890UU1492055', 'FREE', '2024-06-19', 1, 'completed', 3),
-    (20, 'TN08MN9012', 3, 'TT901VV2492056', 'PAID', '2024-06-20', 2, 'pending', 1)
+    (1, "Mechanic 1", "Engine oil change", "Assigned"),
+    (2, "Mechanic 2", "Brake replacement", "Assigned"),
+    (3, "Mechanic 3", "Tyre rotation", "In Progress"),
+    (4, "Mechanic 4", "Clutch cable replacement", "Assigned"),
+	(5,"Mechanic 5","Tyre replacemnt","Assigned")
 ]
 
 def assign_page():
     assign_frame = tk.Frame(main_frame)
-    lb = tk.Label(assign_frame, text="Assigned Work", font=("Arial", 15))
-    lb.pack(pady=10)
+    lb = tk.Label(assign_frame, text="Assigned Work", font=("Ariel", 15))
+    lb.pack()
 
-    tree = ttk.Treeview(assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
+    tree = ttk.Treeview(assign_frame)
 
-    tree.column("#0", width=0, stretch=tk.NO)  
+    tree['columns'] = ("Job ID", "Mechanic", "Task", "Status")
+
+    tree.column("#0", width=0, stretch=tk.NO)
     tree.column("Job ID", anchor=tk.W, width=80)
-    tree.column("Vehicle No", anchor=tk.W, width=120) 
-    tree.column("Customer Name", anchor=tk.W, width=120)
-    tree.column("Engine No", anchor=tk.W, width=120)
-    tree.column("Service Type", anchor=tk.W, width=120)
-    tree.column("Delivery Date", anchor=tk.W, width=120)
-    tree.column("Priority", anchor=tk.W, width=80)
+    tree.column("Mechanic", anchor=tk.W, width=120)
+    tree.column("Task", anchor=tk.W, width=180)
     tree.column("Status", anchor=tk.W, width=100)
-    tree.column("Assignee ID", anchor=tk.W, width=120)
 
     tree.heading("#0", text="", anchor=tk.W) 
     tree.heading("Job ID", text="Job ID", anchor=tk.W)
-    tree.heading("Vehicle No", text="Vehicle No", anchor=tk.W)
-    tree.heading("Customer Name", text="Customer ID", anchor=tk.W)
-    tree.heading("Engine No", text="Engine No", anchor=tk.W)
-    tree.heading("Service Type", text="Service Type", anchor=tk.W)
-    tree.heading("Delivery Date", text="Delivery Date", anchor=tk.W)
-    tree.heading("Priority", text="Priority", anchor=tk.W)
+    tree.heading("Mechanic", text="Mechanic", anchor=tk.W)
+    tree.heading("Task", text="Task", anchor=tk.W)
     tree.heading("Status", text="Status", anchor=tk.W)
-    tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
 
     for job in assigned_jobs:
         tree.insert("", tk.END, values=job)
-    scrollbar = ttk.Scrollbar(assign_frame, orient="vertical", command=tree.yview)
-    tree.configure(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side="right", fill="y")
 
-    hscrollbar = ttk.Scrollbar(assign_frame, orient="horizontal", command=tree.xview)
-    tree.configure(xscrollcommand=hscrollbar.set)
-    hscrollbar.pack(side="bottom", fill="x")
-    
     tree.pack(expand=True, fill='both')
 
     assign_frame.pack(pady=20)
