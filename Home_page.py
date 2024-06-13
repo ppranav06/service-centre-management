@@ -342,12 +342,33 @@ def cus_page():
 	# lb.pack()
 	# assign_frame.pack(pady=20)
 # Example data: list of tuples (job_id, mechanic, task, status)
-
+assigned_jobs = [
+	(1, 'KA02AB1234', "Surya", 'AA839CC9392034', 'PAID', '2024-06-01', 1, 'pending', 1),
+	(2, 'MH12CD5678', "Geetha", 'BB937DD3492038', 'FREE', '2024-06-02', 2, 'pending', 1),
+	(3, 'RJ20EF9012', "Mughil", 'CC034EE5492039', 'PAID', '2024-06-03', 3, 'in_progress', 2),
+	(4, 'DL09GH3456', "Safrin", 'DD235FF6492040', 'FREE', '2024-06-04', 1, 'completed', 3),
+	(5, 'TN18IJ7890', "Shaheera", 'EE456GG7492041', 'PAID', '2024-06-05', 2, 'pending', 1),
+	(6, 'GJ03KL2345', "Nithyashree", 'FF567HH8492042', 'PAID', '2024-06-06', 3, 'in_progress', 2),
+	(7, 'UP17MN6789', "Ramya", 'GG678II9492043', 'FREE', '2024-06-07', 1, 'completed', 3),
+	(8, 'AP21OP1234', "Karthik", 'HH789JJ0492044', 'PAID', '2024-06-08', 2, 'pending', 1),
+	(9, 'BR05QR5678', "Sudhan", 'II890KK1492045', 'FREE', '2024-06-09', 3, 'in_progress', 2),
+	(10, 'MP29ST9012', "Hrithik Roshan", 'JJ901LL2492046', 'PAID', '2024-06-10', 1, 'completed', 1),
+	(11, 'KL07UV3456', "Kunal", 'KK012MM3492047', 'FREE', '2024-06-11', 2, 'pending', 1),
+	(12, 'HR04WX7890', "Deva", 'LL123NN4492048', 'PAID', '2024-06-12', 3, 'in_progress', 2),
+	(13, 'TG30YZ2345', "Vasanth", 'MM234OO5492049', 'FREE', '2024-06-13', 1, 'completed', 3),
+	(14, 'GJ22AB5678', "Pranav", 'NN345PP6492050', 'PAID', '2024-06-14', 2, 'pending', 1),
+	(15, 'KL11CD9012', "Poornima", 'OO456QQ7492051', 'FREE', '2024-06-15', 3, 'in_progress', 2),
+	(16, 'HR05EF3456', "Pavithran", 'PP567RR8492052', 'PAID', '2024-06-16', 1, 'completed', 1),
+	(17, 'TG28GH7890', "Painthamizhan", 'QQ678SS9492053', 'FREE', '2024-06-17', 2, 'pending', 1),
+	(18, 'GJ04IJ1234', "Sundaram", 'RR789TT0492054', 'PAID', '2024-06-18', 3, 'in_progress', 2),
+	(19, 'HR29KL5678', "Siddharth", 'SS890UU1492055', 'FREE', '2024-06-19', 1, 'completed', 3),
+	(20, 'TN08MN9012', "Monish", 'TT901VV2492056', 'PAID', '2024-06-20', 2, 'pending', 1)
+]
 def assign_page():
 	"""The page for displaying assigned jobs from treeview"""
 	assign_frame = tk.Frame(main_frame)
-	lb = tk.Label(assign_frame, text="Assigned Work", font=("Ariel", 15))
-	lb.pack()
+	lb = tk.Label(assign_frame, text="Assigned Work", font=("Arial", 15))
+	lb.pack(pady=10)
 
 	tree = ttk.Treeview(assign_frame)
 	
@@ -355,20 +376,39 @@ def assign_page():
 
 	tree['columns'] = [i[0] for i in c.description]
 
-	'''tree.column("#0", width=0, stretch=tk.NO)
+	tree.column("#0", width=0, stretch=tk.NO)  
 	tree.column("Job ID", anchor=tk.W, width=80)
-	tree.column("Mechanic", anchor=tk.W, width=120)
-	tree.column("Task", anchor=tk.W, width=180)
+	tree.column("Vehicle No", anchor=tk.W, width=120) 
+	tree.column("Customer Name", anchor=tk.W, width=120)
+	tree.column("Engine No", anchor=tk.W, width=120)
+	tree.column("Service Type", anchor=tk.W, width=120)
+	tree.column("Delivery Date", anchor=tk.W, width=120)
+	tree.column("Priority", anchor=tk.W, width=80)
 	tree.column("Status", anchor=tk.W, width=100)
+	tree.column("Assignee ID", anchor=tk.W, width=120)
 
-	tree.heading("#0", text="", anchor=tk.W) 
+	# Headings
+	tree.heading("#0", text="", anchor=tk.W)  # Hidden heading
 	tree.heading("Job ID", text="Job ID", anchor=tk.W)
-	tree.heading("Mechanic", text="Mechanic", anchor=tk.W)
-	tree.heading("Task", text="Task", anchor=tk.W)
-	tree.heading("Status", text="Status", anchor=tk.W)'''
+	tree.heading("Vehicle No", text="Vehicle No", anchor=tk.W)
+	tree.heading("Customer Name", text="Customer Name", anchor=tk.W)
+	tree.heading("Engine No", text="Engine No", anchor=tk.W)
+	tree.heading("Service Type", text="Service Type", anchor=tk.W)
+	tree.heading("Delivery Date", text="Delivery Date", anchor=tk.W)
+	tree.heading("Priority", text="Priority", anchor=tk.W)
+	tree.heading("Status", text="Status", anchor=tk.W)
+	tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
 
+	# Inserting data into the treeview
 	for job in assigned_jobs:
 		tree.insert("", tk.END, values=job)
+	scrollbar = ttk.Scrollbar(assign_frame, orient="vertical", command=tree.yview)
+	tree.configure(yscrollcommand=scrollbar.set)
+	scrollbar.pack(side="right", fill="y")
+
+	hscrollbar = ttk.Scrollbar(assign_frame, orient="horizontal", command=tree.xview)
+	tree.configure(xscrollcommand=hscrollbar.set)
+	hscrollbar.pack(side="bottom", fill="x")
 
 	tree.pack(expand=True, fill='both')
 
@@ -420,7 +460,7 @@ def spares_page():
 	for spare_part in spare_parts:
 		tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
 		tree.pack(fill=tk.BOTH, expand=1)
-      
+	  
 	def low_stock_window():
 			low_stock_window = tk.Toplevel(spares_frame)
 			low_stock_window.title("Low Stock Spare Parts")
@@ -439,14 +479,14 @@ def spares_page():
 			low_stock_tree.heading("Part Number", text="Part Number", anchor=tk.W)
 			low_stock_tree.heading("Cost", text="Cost", anchor=tk.E)
 			low_stock_tree.heading("Quantity", text="Quantity", anchor=tk.E)
-               
+			   
 
 			for spare_part in spare_parts:
 				if spare_part["quantity"] < 5:
 					low_stock_tree.insert("", tk.END, values=(spare_part["name"], spare_part["part_number"], spare_part["cost"], spare_part["quantity"]))
 					low_stock_tree.pack(fill=tk.BOTH, expand=1)
-                        
-                        
+						
+						
 	add_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
 	add_button.place(x=350, y=350)
 	lb.pack()
@@ -467,7 +507,7 @@ def spares_page():
 		tk.Label(buy_window, text="Part Number:").pack()
 		part_number_entry = tk.Entry(buy_window)
 		part_number_entry.pack()
-          
+		  
 
 		def buy_stocks():
 			description= description_entry.get()
