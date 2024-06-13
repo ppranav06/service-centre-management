@@ -3,12 +3,13 @@ from datetime import datetime
 import sqlite3
 
 db = sqlite3.connect('service-centre.db')
+c = db.cursor()
 
 class JobCard:
-    def __init__(self, job_id, registration_number, owner_details, engine_number, service_type, expected_delivery_date, priority):
+    def __init__(self, job_id, registration_number, cus_name, engine_number, service_type, expected_delivery_date, priority):
         self.job_id = job_id
         self.registration_number = registration_number
-        self.owner_details = owner_details
+        self.cus_name = cus_name
         self.engine_number = engine_number
         self.service_type = service_type
         self.expected_delivery_date = expected_delivery_date
@@ -19,15 +20,28 @@ class JobCard:
         """For comparison of priorities"""
         return self.priority < other.priority
 
-    def get_data(self):
-        return (self.job_id, self.registration_number, self.owner_details, self.engine_number, self.service_type, self.expected_delivery_date, self.priority, self.status)
+    def return_data(self):
+        return (self.job_id, self.registration_number, self.cus_name, self.engine_number, self.service_type, self.expected_delivery_date, self.priority, self.status)
+    
+    @classmethod
+    def get_jobs(self, status:str):
+        """Return jobs from the database based on given status"""
+
+        if status not in ('pending', 'in_progress', 'completed'):
+            raise ValueError("Invalid Status")
+        
+        c.execute(f"SELECT * FROM jobs WHERE status='{status}';")
+
+        return c.fetchall()
     
 
 class CustomerCard:
-    def __init__(self, name, address, phone_no, phone_no_2 = None):
+    def __init__(self, vehicle_no, name, address, mail_id, phone_no, phone_no_2 = None):
         # self.customer_id = customer_id
+        self.vehicle_no = vehicle_no
         self.name = name
         self.address = address
+        self.mail_id = mail_id
         self.phone_no = phone_no
         self.phone_no_2 = phone_no_2
 
@@ -36,9 +50,6 @@ class EmployeeCard:
         self.employee_id = employee_id
         self.name = name
         self.job_list = []
-
-    def assign_job(self, job_card):
-        self.job_list.append(job_card)
 
 class JobPriorityQueue:
     def __init__(self):
@@ -72,7 +83,7 @@ if __name__=='__main__':
     job1 = JobCard(
         job_id=1,
         registration_number='ABC123',
-        owner_details=CustomerCard('John Doe', '1/50, Rengarajan St, Kovilambakkam, Chennai - 600117', '6564889953'),
+        cus_name=CustomerCard('John Doe', '1/50, Rengarajan St, Kovilambakkam, Chennai - 600117', '6564889953'),
         engine_number='ENG123',
         service_type='brake repair',
         expected_delivery_date=datetime(2024, 5, 25),
@@ -83,7 +94,7 @@ if __name__=='__main__':
     job2 = JobCard(
         job_id=2,
         registration_number='XYZ456',
-        owner_details='Jane Smith',
+        cus_name='Jane Smith',
         engine_number='ENG456',
         service_type='oil change',
         expected_delivery_date=datetime(2024, 5, 26),
