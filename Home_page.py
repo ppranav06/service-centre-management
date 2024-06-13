@@ -17,7 +17,7 @@ main_frame.pack(fill="both", expand=True)
 
 def validate_vehicle_number(vehicle_number):
 	# Regular expression to match Indian vehicle number format
-	pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{2}[0-9]{1,4}$'
+	pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{1,4}$'
 
 	# Compile the regex pattern
 	regex = re.compile(pattern)
@@ -342,7 +342,19 @@ def cus_page():
 	# lb.pack()
 	# assign_frame.pack(pady=20)
 # Example data: list of tuples (job_id, mechanic, task, status)
-assigned_jobs = [
+
+def assign_page():
+	"""The page for displaying assigned jobs from treeview"""
+	assign_frame = tk.Frame(main_frame)
+	lb = tk.Label(assign_frame, text="Assigned Work", font=("Arial", 15))
+	lb.pack(pady=10)
+
+	tree = ttk.Treeview(assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
+	
+	# assigned_jobs = JobCard.get_jobs('in_progress')
+	# tree['columns'] = [i[0] for i in c.description]
+
+	assigned_jobs = [
 	(1, 'KA02AB1234', "Surya", 'AA839CC9392034', 'PAID', '2024-06-01', 1, 'pending', 1),
 	(2, 'MH12CD5678', "Geetha", 'BB937DD3492038', 'FREE', '2024-06-02', 2, 'pending', 1),
 	(3, 'RJ20EF9012', "Mughil", 'CC034EE5492039', 'PAID', '2024-06-03', 3, 'in_progress', 2),
@@ -364,17 +376,6 @@ assigned_jobs = [
 	(19, 'HR29KL5678', "Siddharth", 'SS890UU1492055', 'FREE', '2024-06-19', 1, 'completed', 3),
 	(20, 'TN08MN9012', "Monish", 'TT901VV2492056', 'PAID', '2024-06-20', 2, 'pending', 1)
 ]
-def assign_page():
-	"""The page for displaying assigned jobs from treeview"""
-	assign_frame = tk.Frame(main_frame)
-	lb = tk.Label(assign_frame, text="Assigned Work", font=("Arial", 15))
-	lb.pack(pady=10)
-
-	tree = ttk.Treeview(assign_frame)
-	
-	assigned_jobs = JobCard.get_jobs('in_progress')
-
-	tree['columns'] = [i[0] for i in c.description]
 
 	tree.column("#0", width=0, stretch=tk.NO)  
 	tree.column("Job ID", anchor=tk.W, width=80)
