@@ -463,18 +463,18 @@ def spares_page():
 	tree.heading("Rate", text="Rate", anchor=tk.E)
 	tree.heading("Quantity", text="Quantity", anchor=tk.E)
 
-	# spare_parts =[
-	# {"description": "Spark plugs", "part_number": "SP-001", "rate": 200, "quantity": 10},
-	# {"description": "Air filter", "part_number": "SP-002", "rate": 300, "quantity": 4},
-	# {"description": "Oil filter", "part_number": "SP-003", "rate": 150, "quantity": 15},
-	# {"description": "Brake pads", "part_number": "SP-004", "rate": 500, "quantity": 20},
-	# {"description": "Chain sprockets", "part_number": "SP-005", "rate":800 , "quantity": 7},
-	# {"description": "Engine oil", "part_number": "SP-006", "rate":400 , "quantity": 12},
-	# {"description": "Clutch cable", "part_number": "SP-007", "rate":100 , "quantity": 9},
-	# {"description": "Brake cable", "part_number": "SP-008", "rate":120 , "quantity": 4},
-	# {"description": "Tyre", "part_number": "SP-009", "rate":2000 , "quantity": 6},
-	# {"description": "Battery", "part_number": "SP-010", "rate":1500 , "quantity": 4}
-	# ]
+	"""spare_parts =[
+	{"description": "Spark plugs", "part_number": "SP-001", "rate": 200, "quantity": 10},
+	 {"description": "Air filter", "part_number": "SP-002", "rate": 300, "quantity": 4},
+	 {"description": "Oil filter", "part_number": "SP-003", "rate": 150, "quantity": 15},
+	 {"description": "Brake pads", "part_number": "SP-004", "rate": 500, "quantity": 20},
+	 {"description": "Chain sprockets", "part_number": "SP-005", "rate":800 , "quantity": 7},
+	 {"description": "Engine oil", "part_number": "SP-006", "rate":400 , "quantity": 12},
+	 {"description": "Clutch cable", "part_number": "SP-007", "rate":100 , "quantity": 9},
+	 {"description": "Brake cable", "part_number": "SP-008", "rate":120 , "quantity": 4},
+	 {"description": "Tyre", "part_number": "SP-009", "rate":2000 , "quantity": 6},
+	 {"description": "Battery", "part_number": "SP-010", "rate":1500 , "quantity": 4}
+	 ]"""
 
 	spare_parts = sparesDB.fetch_data_dict()
 
@@ -485,6 +485,8 @@ def spares_page():
 	def low_stock_window():
 			low_stock_window = tk.Toplevel(spares_frame)
 			low_stock_window.title("Low Stock Spare Parts")
+			low_stock_window.geometry("500x500")
+
 			low_stock_tree = ttk.Treeview(low_stock_window)
 			low_stock_tree["columns"] = ("Description", "Part Number", "Rate", "Quantity")
 
@@ -506,6 +508,7 @@ def spares_page():
 				if spare_part["qty"] < 5:
 					low_stock_tree.insert("", tk.END, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 					low_stock_tree.pack(fill=tk.BOTH, expand=1)
+					
 						
 						
 	low_stock_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
@@ -516,6 +519,8 @@ def spares_page():
 	def buy_stocks_window():
 		buy_window = tk.Toplevel(spares_frame)
 		buy_window.title("Buy Stocks from Company")
+		buy_window.geometry("500x500")
+		
 
 		descriptions = [spare["description"] for spare in spare_parts]
 
@@ -537,18 +542,14 @@ def spares_page():
 		def buy_stocks():
 			description= description_entry.get()
 			qty = int(quantity_entry.get())
-			
-			print("Description:",description)
-			print("Quantity:",qty)
 			spare_part = min(spare_parts, key=lambda x: x["qty"])
-
 			spare_part["qty"] += qty
-
 			
 
 		buy_button = tk.Button(buy_window, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
 		buy_button.place(x=700,y=150)
-
+		
+	
 	add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
 	add_button.place(x=350, y=400)
 	lb.pack()
