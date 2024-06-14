@@ -15,7 +15,7 @@ root1.geometry("1000x500")
 root1.title("Vehicle Service Centre")
 options_frame=tk.Frame(root1,bg="#A89DC7")
 
-main_frame = tk.Frame(root1, bg="#A89DC7")
+main_frame = tk.Frame(root1,bg="#A89DC7")
 main_frame.pack(fill="both", expand=True)
 
 
@@ -668,6 +668,8 @@ options_frame.pack_propagate(False)
 options_frame.configure(width=150,height=500)
 
 main_frame=tk.Frame(root1,highlightbackground="black",highlightthickness=2)
+main_=tk.Label(main_frame,text="The Doctor Two Wheeler Service",font=("Bold",30),bg="#c3c3c3")
+main_.place(x=150,y=150)
 main_frame.pack(side=tk.LEFT)
 main_frame.pack_propagate(False)
 main_frame.configure(width=1000,height=500)
