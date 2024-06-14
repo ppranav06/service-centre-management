@@ -543,17 +543,13 @@ def spares_page():
 
 			spare_part["qty"] += qty
 
-			"""for item in tree.get_children():
-				if tree.item(item, "values")[0] == spare_part["description"]:
-					tree.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
-
-					buy_window.destroy()"""
+			
 
 		buy_button = tk.Button(buy_window, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
-		buy_button.place(x=450,y=400)
+		buy_button.place(x=700,y=150)
 
 	add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
-	add_button.place(x=250, y=400)
+	add_button.place(x=350, y=400)
 	lb.pack()
 	spares_frame.pack(pady=20)
 
