@@ -584,6 +584,16 @@ def spares_page():
 		tk.Label(buy_window, text="Quantity:").pack()
 		quantity_entry = tk.Entry(buy_window)
 		quantity_entry.pack()
+		
+		def update_part_number(event):
+			description = description_entry.get()
+			for spare_part in spare_parts:
+				if spare_part["description"] == description:
+					part_number_entry.delete(0, tk.END)
+					part_number_entry.insert(0, spare_part["part_number"])
+					break
+		description_entry.bind("<<ComboboxSelected>>", update_part_number)
+		
 		def buy_stocks():
 			description = description_entry.get()
 			quantity = int(quantity_entry.get())
