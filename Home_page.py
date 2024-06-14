@@ -36,7 +36,8 @@ def validate_vehicle_number(vehicle_number):
 
 	state_code = vehicle_number[:2]
 	if state_code not in state_codes:
-		return False
+		messagebox.showerror("Error", "Enter the correct state code Ex: TN-Tamil Nadu")
+		return
 
 	return True
 
@@ -50,6 +51,48 @@ def validate_customer_name(customer_name):
 
 	# Check if the provided customer name matches the pattern
 	if not regex.match(customer_name):
+		return False
+
+	return True
+def validate_email(email):
+	# Regular expression to match the email format
+	pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+
+	# Compile the regex pattern
+	regex = re.compile(pattern)
+
+	# Check if the provided email matches the pattern
+	if not regex.match(email):
+		return False
+
+	return True
+def validate_phone_number(phone_number):
+	pattern = r'^[6-9]\d{9}$'
+	regex = re.compile(pattern)
+
+	if not regex.match(phone_number):
+		return False
+	return True
+
+def validate_fields(vehicle_number, customer_name, address, email, phone_number):
+	if not vehicle_number or not customer_name or not address or not email or not phone_number:
+		messagebox.showerror("Error", "All fields are mandatory.")
+		return False
+
+	if not validate_vehicle_number(vehicle_number):
+		messagebox.showerror("Error", "Invalid vehicle number format.")
+		return False
+	
+	if not validate_phone_number(phone_number):
+		messagebox.showerror("Error", "Invalid phone number format.")
+		return False
+
+	if not validate_customer_name(customer_name):
+		messagebox.showerror("Error", "Invalid customer name format.")
+		return False
+
+	if not validate_email(email):
+		messagebox.showerror("Error", "Invalid email format.")
 		return False
 
 	return True
@@ -276,6 +319,40 @@ def job_page():
 
 def cus_page():
 	"""Page for entry of customer data"""
+	def add_customer():
+		vehicle_number = vehicle_entry.get()
+		name = name_entry.get()
+		address = f"{address_entry1.get()} {address_entry2.get()} {address_entry3.get()}"
+		mail_id = mail_entry.get()
+		phone_no = phone_no_entry.get()
+		alternate = alternate_phone_entry.get()
+
+		if validate_fields(vehicle_number, name, address, mail_id, phone_no):
+			try:
+				c.execute('''INSERT INTO customers (vehicle_no, name, address, mail_id, phone_no, phone_no_alt) VALUES (?, ?, ?, ?, ?, ?)''', 
+						  (vehicle_number, name, address, mail_id, phone_no, alternate))
+				db.commit()
+				messagebox.showinfo("Message", "Customer added successfully!")
+				print("Vehicle Number:",vehicle_number)
+				print("Name:",name)
+				print("Address:",address)
+				print("Mail ID:",mail_id)
+				print("Whatsapp Number:",phone_no)
+				print("Alternate Number:",alternate)
+				clear_form()
+			except sqlite3.IntegrityError:
+				messagebox.showerror("Error", "Vehicle number already exists in the database.")
+	
+	def clear_form():
+		vehicle_entry.delete(0, tk.END)
+		name_entry.delete(0, tk.END)
+		address_entry1.delete(0, tk.END)
+		address_entry2.delete(0, tk.END)
+		address_entry3.delete(0, tk.END)
+		mail_entry.delete(0, tk.END)
+		phone_no_entry.delete(0, tk.END)
+		alternate_phone_entry.delete(0, tk.END)
+
 	cus_frame=tk.Frame(main_frame)
 	lb=tk.Label(cus_frame,text="Customer Card",font=("Ariel",15))
 	
@@ -324,41 +401,11 @@ def cus_page():
 	alternate_phone_label.place(x=200, y=380)
 	alternate_phone_entry = tk.Entry(main_frame, width=30,font=font,bg=entry_color)
 	alternate_phone_entry.place(x=350, y=380)
-	
-	def add_customer():
-		vehicle_number = vehicle_entry.get()
-		name = name_entry.get()
-		address = f"{address_entry1.get()} {address_entry2.get()} {address_entry3.get()}"
-		mail_id = mail_entry.get()
-		phone_no = phone_no_entry.get()
-		alternate = alternate_phone_entry.get()
-
-		db.commit()
-		
-		print("Customer added successfully!")
-		messagebox.showinfo("Message", "Customer added successfully!")
-		print("Vehicle Number:",vehicle_number)
-		print("Name:",name)
-		print("Address:",address)
-		print("Mail ID:",mail_id)
-		print("Whatsapp Number:",phone_no)
-		print("Alternate Number:",alternate)
-		clear_form()
-	 
+		 
 	add_button = tk.Button(main_frame, text="Add Customer",font=font,fg="#000000",command=add_customer)
 	add_button.place(x=350, y=440)
 	lb.pack()
 	cus_frame.pack(pady=20)
-
-	def clear_form():
-		vehicle_entry.delete(0,tk.END)
-		name_entry.delete(0, tk.END)
-		address_entry1.delete(0,tk.END)
-		address_entry2.delete(0,tk.END)
-		address_entry3.delete(0,tk.END)
-		mail_entry.delete(0,tk.END)
-		phone_no_entry.delete(0,tk.END)
-		alternate_phone_entry.delete(0,tk.END)
 
 def assign_page():
 	"""The page for displaying assigned jobs from treeview"""
