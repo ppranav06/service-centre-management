@@ -60,6 +60,7 @@ def job_page():
 	root.title("Job Card")
 
 	spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil", "Clutch cable", "Brake cable", "Tyres", "Battery"]
+	# spare_parts = [i[0] for i in sparesDB.fetch_data()]
 	service_types = ["Ignition system service", "Tune-up", "Engine service", "Brake replacement", "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
 	spare_part_rates = {"Spark plugs": 200, "Air filter": 300, "Oil filter": 150, "Brake pads": 500, "Chain sprockets": 800, "Engine oil": 400,
 						"Clutch cable": 100, "Brake cable": 120, "Tyres": 2000, "Battery": 1500}
@@ -79,7 +80,7 @@ def job_page():
 			part = spare_part_combos[row].get().split(' - ')[0]
 			quantity = quantity_entries[row].get()
 			service = service_type_combos[row].get()
-			if part and service and quantity.isdigit():
+			if (part and quantity.isdigit()) or service:
 				total += spare_part_rates.get(part, 0) * int(quantity) + service_type_rates.get(service, 0)
 		total_label.config(text=f"Total: {total}")
 
@@ -166,9 +167,18 @@ def job_page():
 	ttk.Label(table_frame, text="Quantity").grid(row=0, column=1, padx=5, pady=5)
 	ttk.Label(table_frame, text="Service Type").grid(row=0, column=2, padx=5, pady=5)
 	
-	for _ in range(10):
+	# Adding 5 rows by default
+	for _ in range(5):
 		add_row()
 
+	def move_button():
+		"""Dynamically move the button to position below the last row"""
+		add_row_button.grid_forget()  # Remove the button from its current position
+		add_row_button.grid(row=len(spare_part_combos) + 2, column=0, columnspan=3, padx=5, pady=10)  # Add the button below the last row
+
+	add_row_button = ttk.Button(table_frame, text="Add Row", command=lambda: [add_row(), move_button()])
+	add_row_button.grid(row=len(spare_part_combos) + 2, column=0, columnspan=3, padx=5, pady=10)
+	
 	total_label = ttk.Label(job_card_frame, text="Total: 0")
 	total_label.pack(pady=5)
 
@@ -202,6 +212,10 @@ def job_page():
 		bill_text += f"\nTotal: {total_label.cget('text').split(': ')[1]}"
 		bill_label.config(text=bill_text)
 
+	def check_customer(vehicleNo):
+		"""Checks if customer is available in database (to implement)"""
+		pass
+
 	def clear_fields():
 		vehicle_entry.delete(0, tk.END)
 		customer_entry.delete(0, tk.END)
@@ -223,6 +237,10 @@ def job_page():
 	ttk.Label(input_frame, text="Vehicle Number:").grid(row=0, column=0, padx=5, pady=5)
 	vehicle_entry = ttk.Entry(input_frame)
 	vehicle_entry.grid(row=0, column=1, padx=5, pady=5)
+	
+	# ! implement check_customer() method!!!
+	check_customer_button = tk.Button(main_frame, text="Check Customer", command=check_customer)
+	check_customer_button.place(x=350, y=120)
 
 	ttk.Label(input_frame, text="Customer Name:").grid(row=1, column=0, padx=5, pady=5)
 	customer_entry = ttk.Entry(input_frame)
@@ -340,13 +358,6 @@ def cus_page():
 		mail_entry.delete(0,tk.END)
 		phone_no_entry.delete(0,tk.END)
 		alternate_phone_entry.delete(0,tk.END)
-
-#def assign_page():
-	# assign_frame=tk.Frame(main_frame)
-	# lb=tk.Label(assign_frame,text="ASSIGNED",font=("Bold",30))
-	# lb.pack()
-	# assign_frame.pack(pady=20)
-# Example data: list of tuples (job_id, mechanic, task, status)
 
 def assign_page():
 	"""The page for displaying assigned jobs from treeview"""

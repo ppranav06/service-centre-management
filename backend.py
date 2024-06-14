@@ -3,7 +3,6 @@ from datetime import datetime
 import sqlite3
 
 db = sqlite3.connect('service-centre.db')
-c = db.cursor()
 
 class JobCard:
     def __init__(self, job_id, registration_number, cus_name, engine_number, service_type, expected_delivery_date, priority):
@@ -30,6 +29,7 @@ class JobCard:
         if status not in ('pending', 'in_progress', 'completed'):
             raise ValueError("Invalid Status")
         
+        c = db.cursor()
         c.execute(f"SELECT * FROM jobs WHERE status='{status}';")
 
         return c.fetchall()
@@ -44,6 +44,10 @@ class CustomerCard:
         self.mail_id = mail_id
         self.phone_no = phone_no
         self.phone_no_2 = phone_no_2
+
+    @classmethod
+    def check_customer(self, vehicle_no):
+        """Checks for the customer in db and returns details"""
 
 class EmployeeCard:
     def __init__(self, employee_id, name):
