@@ -537,15 +537,17 @@ def spares_page():
 		tk.Label(buy_window, text="Quantity:").pack()
 		quantity_entry = tk.Entry(buy_window)
 		quantity_entry.pack()
-		  
-
 		def buy_stocks():
 			description= description_entry.get()
-			qty = int(quantity_entry.get())
-			spare_part = min(spare_parts, key=lambda x: x["qty"])
-			spare_part["qty"] += qty
+			quantity = int(quantity_entry.get())
 			
+			spare_part = min(spare_parts, key=lambda x: x["quantity"])
+			spare_part["quantity"] += quantity
+			"""for item in tree.get_children():
+				if tree.item(item, "values")[0] == spare_part["description"]:
+					tree.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 
+					buy_window.destroy()"""
 		buy_button = tk.Button(buy_window, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
 		buy_button.place(x=700,y=150)
 		
