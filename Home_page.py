@@ -237,10 +237,11 @@ def job_page():
 	ttk.Label(input_frame, text="Vehicle Number:").grid(row=0, column=0, padx=5, pady=5)
 	vehicle_entry = ttk.Entry(input_frame)
 	vehicle_entry.grid(row=0, column=1, padx=5, pady=5)
+	# vehicle_entry.focus_set()
 	
 	# ! implement check_customer() method!!!
-	check_customer_button = tk.Button(main_frame, text="Check Customer", command=check_customer)
-	check_customer_button.place(x=350, y=120)
+	check_customer_button = tk.Button(job_card_frame, text="Check Customer", command=check_customer)
+	check_customer_button.place(x=150, y=250)
 
 	ttk.Label(input_frame, text="Customer Name:").grid(row=1, column=0, padx=5, pady=5)
 	customer_entry = ttk.Entry(input_frame)
