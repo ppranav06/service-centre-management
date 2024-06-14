@@ -566,7 +566,7 @@ def spares_page():
 	def buy_stocks_window():
 		buy_window = tk.Toplevel(spares_frame)
 		buy_window.title("Buy Stocks from Company")
-		buy_window.geometry("500x500")
+		buy_window.geometry("750x500")
 		
 
 		descriptions = [spare["description"] for spare in spare_parts]
@@ -580,6 +580,8 @@ def spares_page():
 		tk.Label(buy_window, text="Part Number:").pack()
 		part_number_entry = tk.Entry(buy_window)
 		part_number_entry.pack()
+		
+		
 
 		tk.Label(buy_window, text="Quantity:").pack()
 		quantity_entry = tk.Entry(buy_window)
@@ -591,22 +593,29 @@ def spares_page():
 				if spare_part["description"] == description:
 					part_number_entry.delete(0, tk.END)
 					part_number_entry.insert(0, spare_part["part_number"])
+					
 					break
 		description_entry.bind("<<ComboboxSelected>>", update_part_number)
 		
 		def buy_stocks():
 			description = description_entry.get()
 			quantity = int(quantity_entry.get())
+			
+			
+			
+			
 			for spare_part in spare_parts:
-				if spare_part["description"] == description:
-					spare_part["qty"] += quantity
-					for item in tree.get_children():
-						if tree.item(item, "values")[0] == spare_part["description"]:
-							tree.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
-					break
+					if spare_part["description"] == description:
+						spare_part["qty"] += quantity
+						for item in tree.get_children():
+							if tree.item(item, "values")[0] == spare_part["description"]:
+								tree.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
+						break
+					
+			tk.messagebox.showinfo("Success", "The stocks are bought successfully!")
 			buy_window.destroy()
 		buy_button = tk.Button(buy_window, text="Buy spares",font=("ariel",15),fg="#000000",command=buy_stocks)
-		buy_button.place(x=700,y=150)
+		buy_button.place(x=300,y=150)
 		
 	
 	add_button = tk.Button(main_frame, text="Add Spares",font=("ariel",15),fg="#000000",command=(buy_stocks_window))
