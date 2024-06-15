@@ -634,9 +634,6 @@ def employee_page():
 	details_label = tk.Label(employee_frame, text="Details of the Employees", font=("Ariel", 12))
 	details_label.pack(pady=10)
 	
-
-
-	
 	def create_employee_list(root):
 		tree = ttk.Treeview(root, columns=("id", "description", "designation","department","experience"), show='headings')
 		tree.column("id", anchor=tk.CENTER, width=50)
@@ -669,14 +666,31 @@ def employee_page():
 			employee = next((e for e in employees if e["id"] == employee_id), None)
 			
 			if employee:
-				details_label.config(text=f"ID: {employee['id']}\nName: {employee['name']}\nDesignation: {employee['designation']}\nDepartment:{employee['department']}\nExperience:{employee['experience']}")
+				detail_window=tk.Toplevel(employee_frame)
+				detail_window.title("EMPLOYEE DETAILS")
+				
+				
+				
+				id_label = tk.Label(detail_window, text=f"ID: {employee['id']}")
+				id_label.pack()
+				
+				name_label = tk.Label(detail_window, text=f"Name: {employee['name']}")
+				name_label.pack()
+				
+				designation_label = tk.Label(detail_window, text=f"Designation: {employee['designation']}")
+				designation_label.pack()
+				
+				department_label = tk.Label(detail_window, text=f"Department: {employee['department']}")
+				department_label.pack()
+				
+				experience_label = tk.Label(detail_window, text=f"Experience: {employee['experience']}")
+				experience_label.pack()
+		
+		
+		
+		
 		tree.bind("<Double-1>", open_employee_details)
 	create_employee_list(employee_frame)
-
-
-
-
-
 
 def hide_indicators():
 	job_indicate.config(bg="#c3c3c3")
