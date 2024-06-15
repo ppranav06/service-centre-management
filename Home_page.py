@@ -625,10 +625,17 @@ def spares_page():
 
 
 def employee_page():
+
 	employee_frame=tk.Frame(main_frame)
-	lb=tk.Label(employee_frame,text="Employee",font=("Ariel",15))
+	lb=tk.Label(employee_frame,text="Employee List",font=("Ariel",15))
 	lb.pack()
 	employee_frame.pack(pady=20)
+
+	details_label = tk.Label(employee_frame, text="Details of the Employees", font=("Ariel", 12))
+	details_label.pack(pady=10)
+	
+
+
 	
 	def create_employee_list(root):
 		tree = ttk.Treeview(root, columns=("id", "description", "designation","department","experience"), show='headings')
@@ -644,6 +651,7 @@ def employee_page():
 		tree.heading("experience", text="Experience")
 
 		tree.pack()
+		
 		employees = [
 	   {"id":"088", "name": "Pranav", "designation": "Mechanic","department":"Sales","experience":"5 Years"},
 	   {"id":"085", "name": "Painthamizhan", "designation": "Customer Service","department":"Service","experience":"6 Years"},
@@ -654,27 +662,21 @@ def employee_page():
 
 		for employee in employees:
 				tree.insert("", tk.END, values=(employee["id"], employee["name"], employee["designation"],employee["department"],employee["experience"]))
-				tree.bind("<Double-1>", lambda event: open_employee_details(tree, event))
-
-		def open_employee_details(tree, event):
+		
+		def open_employee_details(event):
 			item = tree.item(tree.focus())
 			employee_id = item["values"][0]
-			employees = [
-		{"id":"088", "name": "Pranav", "designation": "Mechanic","department":"Service","experience":"5 Years"},
-		{"id":"085", "name": "Painthamizhan", "designation": "Customer Service","department":"Sales","experience":"6 Years"},
-		{"id":"087", "name": "Poornima", "designation": "Manager","department":"Sales","experience":"8 Years"},
-		{"id":"086", "name": "Pavithran", "designation": "Mechanic","department":"Service","experience":"7 Years"}]					
 			employee = next((e for e in employees if e["id"] == employee_id), None)
+			
 			if employee:
-				details_window = tk.Toplevel(root)
-				details_window.title("Employee Details")
-				label = tk.Label(details_window, text=f"ID: {employee['id']}\nName: {employee['name']}\nDesignation: {employee['designation']}\nDepartment:{employee['department']}\nExperience:{employee['experience']}")
-				label.pack()
-	root  = tk.Tk()
-	root.title("Employee List")
-	root= tk.Frame(root)
-	root.pack(fill="both", expand=True)
-	create_employee_list(root)
+				details_label.config(text=f"ID: {employee['id']}\nName: {employee['name']}\nDesignation: {employee['designation']}\nDepartment:{employee['department']}\nExperience:{employee['experience']}")
+		tree.bind("<Double-1>", open_employee_details)
+	create_employee_list(employee_frame)
+
+
+
+
+
 
 def hide_indicators():
 	job_indicate.config(bg="#c3c3c3")
