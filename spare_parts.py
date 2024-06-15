@@ -11,34 +11,45 @@ class SpareParts:
 
     def create_tables(self):
         """Initialising the tables (if does not exist)"""
-        self._c.execute('''
-            CREATE TABLE IF NOT EXISTS spare_parts (
-                id INTEGER PRIMARY KEY,
-                description TEXT,
-                qty INTEGER,
-                rate REAL,
-                part_number TEXT
-            )
-        ''')
+        
+        self._c.execute("""CREATE TABLE IF NOT EXISTS spare_parts(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          part_number TEXT UNIQUE,
+          description TEXT NOT NULL,
+          qty INTEGER,
+          rate REAL)""")
+        
         self._db.commit()
 
-    def insert_data(self, description, qty, rate, part_number):
+    def insert_data(self, part_number, description, qty, rate):
         """Inserts data into the spare parts table in db"""
 
         self._c.execute('''
-            INSERT INTO spare_parts (description, qty, rate, part_number)
+            INSERT INTO spare_parts (part_number, description, qty, rate)
             VALUES (?, ?, ?, ?)
-        ''', (description, qty, rate, part_number))
+        ''', (part_number, description, qty, rate))
+        self._db.commit()
+
+    def update_quantity(self, part_number, qty):
+        """Update the quantity of the spare part (with part_number as the key)"""
+
+        sparepart_numbers = list(self._c.execute("SELECT part_number FROM spare_parts"))
+
+        if part_number not in sparepart_numbers:
+            raise ValueError("The Part number does not exist")
+
+        self._c.execute(f"UPDATE spare_parts SET qty={qty} WHERE part_number='{part_number}'")
         self._db.commit()
         
     def fetch_data(self) -> list:
-        self._c.execute('SELECT description, part_number, qty, rate FROM spare_parts')
+        """Returns a complete list of the spare parts available from the database"""
+        self._c.execute('SELECT part_number, description, qty, rate FROM spare_parts')
         rows = self._c.fetchall()
         return rows
     
     def fetch_data_dict(self):
-        """Returns a list of dictionaries for the values obtained"""
-        self._c.execute('SELECT description, part_number, qty, rate FROM spare_parts')
+        """Returns a list of dictionaries of all spare parts available from the database"""
+        self._c.execute('SELECT part_number, description, qty, rate FROM spare_parts')
         rows = self._c.fetchall()
         cols = [i[0] for i in self._c.description]
         return [dict(zip(cols, r)) for r in rows]
