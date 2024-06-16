@@ -333,12 +333,12 @@ def cus_page():
 						  (vehicle_number, name, address, mail_id, phone_no, alternate))
 				db.commit()
 				messagebox.showinfo("Message", "Customer added successfully!")
-				print("Vehicle Number:",vehicle_number)
+				"""print("Vehicle Number:",vehicle_number)
 				print("Name:",name)
 				print("Address:",address)
 				print("Mail ID:",mail_id)
 				print("Whatsapp Number:",phone_no)
-				print("Alternate Number:",alternate)
+				print("Alternate Number:",alternate)"""
 				clear_form()
 			except sqlite3.IntegrityError:
 				messagebox.showerror("Error", "Vehicle number already exists in the database.")
@@ -635,11 +635,11 @@ def employee_page():
 	details_label.pack(pady=10)
 	
 	def create_employee_list(root):
-		tree = ttk.Treeview(root, columns=("id", "description", "designation","department","experience"), show='headings')
+		tree = ttk.Treeview(root, columns=("id", "name", "designation","department","experience"), show='headings')
 		tree.column("id", anchor=tk.CENTER, width=50)
 		tree.heading("id", text="ID")
-		tree.column("description", anchor=tk.CENTER, width=100)
-		tree.heading("description", text="Name")
+		tree.column("name", anchor=tk.CENTER, width=100)
+		tree.heading("name", text="Name")
 		tree.column("designation", anchor=tk.CENTER, width=150)
 		tree.heading("designation", text="Designation")
 		tree.column("department", anchor=tk.CENTER, width=200)
@@ -668,6 +668,7 @@ def employee_page():
 			if employee:
 				detail_window=tk.Toplevel(employee_frame)
 				detail_window.title("EMPLOYEE DETAILS")
+				
 				
 				
 				
