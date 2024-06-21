@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import *
 from tkinter import ttk
 import re
+import json
 
 from backend import *
 from spare_parts import *
@@ -97,25 +98,41 @@ def validate_fields(vehicle_number, customer_name, address, email, phone_number)
 
 	return True
 
+spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil",
+               "Clutch cable", "Brake cable", "Tyres", "Battery"]
+service_types = ["Ignition system service", "Tune-up", "Engine service", "Brake replacement",
+                 "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
+spare_part_rates = {"Spark plugs": 200, "Air filter": 300, "Oil filter": 150, "Brake pads": 500,
+                    "Chain sprockets": 800, "Engine oil": 400, "Clutch cable": 100, "Brake cable": 120,
+                    "Tyres": 2000, "Battery": 1500}
+service_type_rates = {"Ignition system service": 500, "Tune-up": 600, "Engine service": 1000,
+                      "Brake replacement": 800, "Transmission service": 1200, "Brake service": 700,
+                      "Tyre rotation": 300, "Electrical system check": 400}
+
+spare_parts_inventory = {}
+original_inventory = {}
+
+def save_inventory():
+    with open('inventory.json', 'w') as file:
+        json.dump(spare_parts_inventory, file)
+
+def load_inventory():
+    global spare_parts_inventory, original_inventory
+    try:
+        with open('inventory.json', 'r') as file:
+            spare_parts_inventory = json.load(file)
+    except FileNotFoundError:
+        spare_parts_inventory = {part: 20 for part in spare_parts}
+    original_inventory = spare_parts_inventory.copy()
+
 def job_page():
 	root = tk.Tk()
 	root.geometry("1000x700")
 	root.title("Job Card")
+	load_inventory()
 
 	job_card_frame = ttk.Frame(root)
 	job_card_frame.pack(padx=10, pady=10)
-
-	spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil", "Clutch cable", "Brake cable", "Tyres", "Battery"]
-	# spare_parts = [i[0] for i in sparesDB.fetch_data()]
-	service_types = ["Ignition system service", "Tune-up", "Engine service", "Brake replacement", "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
-	spare_part_rates = {"Spark plugs": 200, "Air filter": 300, "Oil filter": 150, "Brake pads": 500, "Chain sprockets": 800, "Engine oil": 400,
-						"Clutch cable": 100, "Brake cable": 120, "Tyres": 2000, "Battery": 1500}
-	service_type_rates = {"Ignition system service": 500, "Tune-up": 600, "Engine service": 1000, "Brake replacement": 800, "Transmission service": 1200, "Brake service": 700,
-						  "Tyre rotation": 300, "Electrical system check": 400}
-
-	# Inventory management
-	spare_parts_inventory = {part: 20 for part in spare_parts}  # Example initial inventory
-	original_inventory = spare_parts_inventory.copy()  # Original inventory snapshot
 
 	def calculate_rate():
 		total = 0
@@ -238,6 +255,31 @@ def job_page():
 		if not validate_customer_name(customer_name):
 			messagebox.showerror("Error", "Invalid customer name. Please use only alphabets and spaces.")
 			return
+		rows_filled = False
+		for row in range(len(spare_part_combos)):
+			part = spare_part_combos[row].get().split(' - ')[0]
+			quantity = quantity_entries[row].get()
+			service = service_type_combos[row].get()
+			if part and quantity.isdigit() and service:
+				rows_filled = True
+				break
+			elif part and not service:
+				messagebox.showerror("Error", f"Service type is required for {part}.")
+				return
+			elif service and not part:
+				messagebox.showerror("Error", f"Spare part is required for {service}.")
+				return
+		if not rows_filled:
+			messagebox.showerror("Error", "At least one row of spare parts with quantity must be filled.")
+			return
+
+		if not service_type:
+			messagebox.showerror("Error", "Please select a service type.")
+			return
+
+		if not customer_complaint:
+			messagebox.showerror("Error", "Please enter customer complaints.")
+			return
 
 		if service_type == "Free":
 			messagebox.showinfo("Info", "No bill generated for free service.")
@@ -268,6 +310,9 @@ def job_page():
 		service_type_combo.set("")
 		total_label.config(text="Total: 0")
 		bill_label.config(text="")
+		for part in spare_parts_inventory:
+			spare_parts_inventory[part]=original_inventory[part]
+		update_combobox_values()
 
 	# Input fields for customer name and vehicle number
 	input_frame = ttk.Frame(root)
@@ -313,7 +358,7 @@ def job_page():
 		table_canvas.configure(scrollregion=table_canvas.bbox("all"))
 
 	table_frame.bind("<Configure>", update_scroll_region)
-
+	root.protocol("WM_DELETE_WINDOW", lambda: [save_inventory(), root.destroy()])
 	root.mainloop()
 
 def cus_page():
