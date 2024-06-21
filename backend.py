@@ -2,25 +2,45 @@ import heapq
 from datetime import datetime
 import sqlite3
 
-db = sqlite3.connect('service-centre.db')
-
 class JobCard:
-    def __init__(self, job_id, registration_number, cus_name, engine_number, service_type, expected_delivery_date, priority):
-        self.job_id = job_id
-        self.registration_number = registration_number
-        self.cus_name = cus_name
-        self.engine_number = engine_number
-        self.service_type = service_type
-        self.expected_delivery_date = expected_delivery_date
-        self.priority = priority  # Lower number means higher priority
-        self.status = 'Pending'
+    def __init__(self, job_id, vehicle_number, cus_name, engine_number, service_type, expected_delivery_date, priority, status='pending', assignee_id=None):
+        self._job_id = job_id
+        self._vehicle_number = vehicle_number
+        self._cus_name = cus_name
+        self._engine_number = engine_number
+        self._service_type = service_type
+        self._expected_delivery_date = expected_delivery_date
+        self._priority = priority  # Lower number means higher priority
+        self._status = status
+        self._assignee_id = assignee_id
+    
+    def priority(self): 
+        return self._priority
+    
+    def status(self, newStatus = None):
+        try:
+            if newStatus in ('pending', 'in_progress', 'completed'):
+                self._status = newStatus
+        except:
+            raise ValueError("Invalid Status Supplied")    
 
     def __lt__(self, other):
-        """For comparison of priorities"""
-        return self.priority < other.priority
+        """Compare priorities of jobs"""
+        if not isinstance(other, JobCard):
+            raise TypeError("The data type does not belong to JobCard")
+        
+        return self._priority < other.priority()
 
-    def return_data(self):
-        return (self.job_id, self.registration_number, self.cus_name, self.engine_number, self.service_type, self.expected_delivery_date, self.priority, self.status)
+    def __gt__(self, other):
+        """Compare priorities of jobs"""
+        if not isinstance(other, JobCard):
+            raise TypeError("The data type does not belong to JobCard")
+        
+        return self._priority > other.priority()
+
+    def get_data(self):
+        """Returns a tuple of the parameters of the job card"""
+        return (self._job_id, self._vehicle_number, self._cus_name, self._engine_number, self._service_type, self._expected_delivery_date, self._priority, self._status, self._assignee_id)
     
     @classmethod
     def get_jobs(self, status:str):
@@ -29,6 +49,7 @@ class JobCard:
         if status not in ('pending', 'in_progress', 'completed'):
             raise ValueError("Invalid Status")
         
+        db = sqlite3.connect('service-centre.db')
         c = db.cursor()
         c.execute(f"SELECT * FROM jobs WHERE status='{status}';")
 
@@ -45,9 +66,39 @@ class CustomerCard:
         self.phone_no = phone_no
         self.phone_no_2 = phone_no_2
 
+        self._db = sqlite3.connect('service-centre.db')
+        self._c = self._db.cursor()
+
     @classmethod
     def check_customer(self, vehicle_no):
         """Checks for the customer in db and returns details"""
+
+        db = sqlite3.connect("service-centre.db")
+        response = list(db.execute(f"SELECT * FROM customers WHERE vehicle_no = '{vehicle_no}';"))
+        db.close()
+
+        if not response: return False   # no customer exists
+        
+        return CustomerCard(*response)
+    
+    def add_customer(self):
+        """Add a customer with the given data
+
+        Syntax: Declare a Customer Object and initiate function
+        
+        Raises an error if the customer (vehicle no) already exists
+        """
+        existing_data = list(*self._c.execute(f"SELECT * FROM customers WHERE vehicle_no = '{self.vehicle_no}';"))
+
+        if existing_data:
+            raise sqlite3.IntegrityError("The given data already exists")
+        
+        self._c.execute("INSERT INTO customers VALUES (?, ?, ?, ?, ?, ?)", (self.vehicle_no, self.name, self.address, self.mail_id, self.phone_no, self.phone_no_2))
+
+        self._db.commit()
+
+    def __del__(self):
+        self._db.close()
 
 class EmployeeCard:
     def __init__(self, employee_id, name):
@@ -86,7 +137,7 @@ if __name__=='__main__':
     # Create some example job cards
     job1 = JobCard(
         job_id=1,
-        registration_number='ABC123',
+        vehicle_number='ABC123',
         cus_name=CustomerCard('John Doe', '1/50, Rengarajan St, Kovilambakkam, Chennai - 600117', '6564889953'),
         engine_number='ENG123',
         service_type='brake repair',
@@ -97,7 +148,7 @@ if __name__=='__main__':
 
     job2 = JobCard(
         job_id=2,
-        registration_number='XYZ456',
+        vehicle_number='XYZ456',
         cus_name='Jane Smith',
         engine_number='ENG456',
         service_type='oil change',

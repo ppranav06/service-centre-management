@@ -40,13 +40,14 @@ class JobQueue:
 class EmployeeJobScheduler:
     def __init__(self):
         self.employees = {}
-        self.conn = sqlite3.connect(':memory:')  # Use in-memory database for testing
+        # self.conn = sqlite3.connect(':memory:')  # Use in-memory database for testing
+        self.conn = sqlite3.connect('service-centre.db')  # Use in-memory database for testing
         self._create_tables()
 
     def _create_tables(self):
         cursor = self.conn.cursor()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS jobs (
+            CREATE TABLE IF NOT EXISTS assignments (
                 employee_id TEXT,
                 job_id TEXT,
                 job_type TEXT,
@@ -77,12 +78,12 @@ class EmployeeJobScheduler:
     def update_database(self, employee_id):
         if employee_id in self.employees:
             cursor = self.conn.cursor()
-            cursor.execute('DELETE FROM jobs WHERE employee_id = ?', (employee_id,))
+            cursor.execute('DELETE FROM assignments WHERE employee_id = ?', (employee_id,))
             while self.employees[employee_id].queue:
                 job = self.employees[employee_id].get_next_job()
                 if job:
                     priority, job_id, job_type, time_estimate = job
-                    cursor.execute('INSERT INTO jobs (employee_id, job_id, job_type, time_estimate) VALUES (?, ?, ?, ?)',
+                    cursor.execute('INSERT INTO assignments (employee_id, job_id, job_type, time_estimate) VALUES (?, ?, ?, ?)',
                                 (employee_id, job_id, job_type, time_estimate))
             self.conn.commit()
 
@@ -102,12 +103,12 @@ def test_job_scheduler():
     scheduler.add_employee("E1")
     scheduler.add_employee("E2")
 
-    # Adding jobs to employee E1
+    # Adding assignments to employee E1
     scheduler.add_job("E1", "J1", "mileage problem", 3)
     scheduler.add_job("E1", "J2", "handle adjustment", 2)
     scheduler.add_job("E1", "J3", "engine noise trouble", 4)
 
-    # Adding jobs to employee E2
+    # Adding assignments to employee E2
     scheduler.add_job("E2", "J4", "vibration problem", 1)
     scheduler.add_job("E2", "J5", "mirror adjustment", 5)
     scheduler.add_job("E2", "J6", "starting trouble", 3)
@@ -119,7 +120,7 @@ def test_job_scheduler():
     scheduler.update_database("E1")
     scheduler.update_database("E2")
 
-    # Adding jobs back to queue to simulate persistence after DB update
+    # Adding assignments back to queue to simulate persistence after DB update
     scheduler.add_job("E1", "J2", "handle adjustment", 2)
     scheduler.add_job("E1", "J3", "engine noise trouble", 4)
     scheduler.add_job("E2", "J5", "mirror adjustment", 5)

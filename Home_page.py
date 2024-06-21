@@ -102,6 +102,9 @@ def job_page():
 	root.geometry("1000x700")
 	root.title("Job Card")
 
+	job_card_frame = ttk.Frame(root)
+	job_card_frame.pack(padx=10, pady=10)
+
 	spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil", "Clutch cable", "Brake cable", "Tyres", "Battery"]
 	# spare_parts = [i[0] for i in sparesDB.fetch_data()]
 	service_types = ["Ignition system service", "Tune-up", "Engine service", "Brake replacement", "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
@@ -113,9 +116,6 @@ def job_page():
 	# Inventory management
 	spare_parts_inventory = {part: 20 for part in spare_parts}  # Example initial inventory
 	original_inventory = spare_parts_inventory.copy()  # Original inventory snapshot
-
-	job_card_frame = ttk.Frame(root)
-	job_card_frame.pack(padx=10, pady=10)
 
 	def calculate_rate():
 		total = 0
@@ -255,10 +255,6 @@ def job_page():
 		bill_text += f"\nTotal: {total_label.cget('text').split(': ')[1]}"
 		bill_label.config(text=bill_text)
 
-	def check_customer(vehicleNo):
-		"""Checks if customer is available in database (to implement)"""
-		pass
-
 	def clear_fields():
 		vehicle_entry.delete(0, tk.END)
 		customer_entry.delete(0, tk.END)
@@ -280,10 +276,10 @@ def job_page():
 	ttk.Label(input_frame, text="Vehicle Number:").grid(row=0, column=0, padx=5, pady=5)
 	vehicle_entry = ttk.Entry(input_frame)
 	vehicle_entry.grid(row=0, column=1, padx=5, pady=5)
-	# vehicle_entry.focus_set()
+	vehicle_entry.focus_set()
 	
 	# ! implement check_customer() method!!!
-	check_customer_button = tk.Button(job_card_frame, text="Check Customer", command=check_customer)
+	check_customer_button = tk.Button(job_card_frame, text="Check Customer", command=CustomerCard.check_customer(vehicle_entry.get()))
 	check_customer_button.place(x=150, y=250)
 
 	ttk.Label(input_frame, text="Customer Name:").grid(row=1, column=0, padx=5, pady=5)
@@ -309,6 +305,9 @@ def job_page():
 	bill_label = ttk.Label(root, text="", justify="left")
 	bill_label.pack(pady=10)
 
+	create_job_card_button = ttk.Button(input_frame, text="Create Job Card", padding=5, command=clear_fields)
+	create_job_card_button.grid(row=6, column=1, pady=10)
+
 	# Update the scroll region
 	def update_scroll_region(event):
 		table_canvas.configure(scrollregion=table_canvas.bbox("all"))
@@ -329,20 +328,13 @@ def cus_page():
 
 		if validate_fields(vehicle_number, name, address, mail_id, phone_no):
 			try:
-				c.execute('''INSERT INTO customers (vehicle_no, name, address, mail_id, phone_no, phone_no_alt) VALUES (?, ?, ?, ?, ?, ?)''', 
-						  (vehicle_number, name, address, mail_id, phone_no, alternate))
-				db.commit()
+				CustomerCard(vehicle_number, name, address, mail_id, phone_no, alternate).add_customer()
+				# db.commit()
 				messagebox.showinfo("Message", "Customer added successfully!")
-				"""print("Vehicle Number:",vehicle_number)
-				print("Name:",name)
-				print("Address:",address)
-				print("Mail ID:",mail_id)
-				print("Whatsapp Number:",phone_no)
-				print("Alternate Number:",alternate)"""
 				clear_form()
 			except sqlite3.IntegrityError:
 				messagebox.showerror("Error", "Vehicle number already exists in the database.")
-	
+
 	def clear_form():
 		vehicle_entry.delete(0, tk.END)
 		name_entry.delete(0, tk.END)
@@ -764,6 +756,7 @@ main_=tk.Label(main_frame,text="The Doctor Two Wheeler Service",font=("Bold",30)
 main_.place(x=150,y=150)
 main_frame.pack(side=tk.LEFT)
 main_frame.pack_propagate(False)
-main_frame.configure(width=1000,height=500)
+main_frame.configure(width=850,height=500)
+root1.resizable(False, False) # Lock size of window
 
 root1.mainloop()
