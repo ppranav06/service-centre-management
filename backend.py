@@ -107,11 +107,24 @@ class Employee:
         self.job_list = []
     
     @classmethod
-    def get_employees(self):
-        """Returns the list of employees (dictionaries) from the database"""
+    def get_employees(self, fields='*'):
+        """Returns the list of employees (list of tuples) from the database.
+        By default, obtains all columns in the 'employees' table (fields='*')
+        """
         _db = sqlite3.connect("service-centre.db")
         _c = _db.cursor()
-        _c.execute("select * from employees")
+        _c.execute(f"select {fields} from employees")
+
+        return list(_c.fetchall())
+    
+    @classmethod
+    def get_employees_dict(self, fields='*'):
+        """Returns the list of employees (list of dictionaries) from the database.
+        By default, obtains all columns in the 'employees' table (fields='*')
+        """
+        _db = sqlite3.connect("service-centre.db")
+        _c = _db.cursor()
+        _c.execute(f"select {fields} from employees")
 
         rows = _c.fetchall(); cols=[i[0] for i in _c.description]
         return [dict(zip(cols, r)) for r in rows]
@@ -151,7 +164,6 @@ if __name__=='__main__':
         cus_name=CustomerCard('John Doe', '1/50, Rengarajan St, Kovilambakkam, Chennai - 600117', '6564889953'),
         engine_number='ENG123',
         service_type='brake repair',
-        expected_delivery_date=datetime(2024, 5, 25),
         priority=0  # Initial placeholder
     )
     job1.priority = calculate_priority(job1)

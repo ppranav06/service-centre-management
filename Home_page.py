@@ -321,69 +321,84 @@ def job_page():
 			spare_parts_inventory[part]=original_inventory[part]
 		update_combobox_values()
 
+	def add_job_card_to_database(job_card):
+		try:
+			conn = sqlite3.connect('service-centre.db')
+			cursor = conn.cursor()
+			cursor.execute('''
+				INSERT INTO jobs (job_id, vehicle_no, customer_name, engine_no, service_type, delivery_date, priority, status, assignee_id)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			''', job_card.get_data())
+			conn.commit()
+		except sqlite3.Error as e:
+			messagebox.showerror("Database Error", f"An error occurred: {e}")
+		finally:
+			conn.close()
+
+	
+	######################################
+	# THE JOB SCHEDULER IMPLEMENTED (from job_queue.py)
+	job_scheduler = EmployeeJobScheduler()
+
+	def schedule_job(job_card):
+		try:
+			# For simplicity, assign the job to the first employee
+			employees = Employee.get_employees_dict()
+			if not employees:
+				messagebox.showerror("Error", "No employees available.")
+				return
+
+			employee_id = employees[0]['employee_id']
+			job_scheduler.add_job(employee_id, job_card._job_id, job_card._service_type, job_card._priority)
+			job_scheduler.update_database(employee_id)
+		except Exception as e:
+			messagebox.showerror("Scheduling Error", f"An error occurred while scheduling the job: {e}")
+
+	# Updating the create job card button command to use create_job_card function
+
 	def create_job_card():
+		# Extract information from the form
 		vehicle_number = vehicle_entry.get().strip()
 		customer_name = customer_entry.get().strip()
-		customer_complaint = complaint_text.get("1.0", tk.END).strip()
+		complaint = complaint_text.get("1.0", tk.END).strip()
 		service_type = service_type_combo.get().strip()
 
-		# Validate vehicle number and customer name
-		if not validate_vehicle_number(vehicle_number):
-			messagebox.showerror("Error", "Invalid vehicle number format. Please enter in the format: TN30BX1234")
+		# Check for empty fields
+		if not vehicle_number:
+			messagebox.showerror("Error", "Vehicle number cannot be empty.")
 			return
-		
-		if not validate_customer_name(customer_name):
-			messagebox.showerror("Error", "Invalid customer name. Please use only alphabets and spaces.")
+		if not customer_name:
+			messagebox.showerror("Error", "Customer name cannot be empty.")
 			return
-		
-		# Ensure at least one row is filled
-		rows_filled = False
-		for row in range(len(spare_part_combos)):
-			part = spare_part_combos[row].get().split(' - ')[0]
-			quantity = quantity_entries[row].get()
-			service = service_type_combos[row].get()
-			if part and quantity.isdigit() and service:
-				rows_filled = True
-				break
-			elif part and not service:
-				messagebox.showerror("Error", f"Service type is required for {part}.")
-				return
-			elif service and not part:
-				messagebox.showerror("Error", f"Spare part is required for {service}.")
-				return
-		if not rows_filled:
-			messagebox.showerror("Error", "At least one row of spare parts with quantity must be filled.")
+		if not complaint:
+			messagebox.showerror("Error", "Complaint cannot be empty.")
 			return
-
 		if not service_type:
-			messagebox.showerror("Error", "Please select a service type.")
+			messagebox.showerror("Error", "Service type cannot be empty.")
 			return
 
-		if not customer_complaint:
-			messagebox.showerror("Error", "Please enter customer complaints.")
+		# Check if the service type is valid
+		if service_type not in ['free', 'paid', 'running']:
+			messagebox.showerror("Error", f"Invalid service type: {service_type}")
 			return
 
-		job_id = generate_new_job_id()  # This should be a function to generate a new job ID
-		engine_number = "N/A"  # This should be collected from a relevant input if needed
-		expected_delivery_date = calculate_expected_delivery_date()  # Define how to calculate or input this
-		priority = calculate_priority()  # Define how to calculate this based on your criteria
+		# Generate a unique job ID (for simplicity, using timestamp)
+		job_id = generate_new_job_id()
 
-		# Create the job card object
-		job_card = JobCard(job_id, vehicle_number, customer_name, engine_number, service_type, expected_delivery_date, priority)
+		# Calculate expected delivery date and priority
+		expected_delivery_date = datetime.now() + timedelta(days=3)
+		priority = priorities.get(service_type, float('1000'))
 
-		# Insert the job card into the database
-		insert_job_card_into_db(job_card)
+		# Create a job card object
+		job_card = JobCard(int(job_id), str(vehicle_number), str(customer_name), "", str(service_type), expected_delivery_date, int(priority))
 
-		messagebox.showinfo("Success", "Job card created successfully.")
+		# Add the job card to the database
+		add_job_card_to_database(job_card)
 
-	def insert_job_card_into_db(job_card):
-		"""Inserts the job card into the database"""
-		db = sqlite3.connect('service-centre.db')
-		c = db.cursor()
-		c.execute("INSERT INTO jobs (job_id, vehicle_no, customer_name, engine_no, service_type, delivery_date, priority, status, assignee_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-				job_card.get_data())
-		db.commit()
-		db.close()
+		# Schedule the job
+		schedule_job(job_card)
+
+		messagebox.showinfo("Success", f"Job card {job_id} created and scheduled.")
 
 	def generate_new_job_id():
 		"""Generates a new unique job ID"""
@@ -586,7 +601,7 @@ class AssignedJobs:
 		self.tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
 
 		self.status_options = ["pending", "in_progress", "completed"]
-		self.assignee_options = [1, 2, 3]
+		self.assignee_options = Employee.get_employees_dict("employee_id, name")
 
 		for job in assigned_jobs:
 			self.tree.insert("", tk.END, values=job)
@@ -602,14 +617,14 @@ class AssignedJobs:
 
 		self.remove_dropdowns()
 
-		if column in ('#8', '#9'):  # Adjust based on your column index
+		if column in ('#8', '#9'):  # Adjusting based on the column index
 			x, y, width, height = self.tree.bbox(item_id, column)
 			if column == '#8':  # Status column
 				options = self.status_options
 				current_value = self.tree.set(item_id, "Status")
 			elif column == '#9':  # Assignee ID column
 				options = self.assignee_options
-				current_value = self.tree.set(item_id, "Assignee ID")
+				current_value = self.tree.set(item_id, "Assignee ID")[0]
 
 			self.create_dropdown(x, y, width, height, options, current_value, item_id, column)
 
@@ -698,7 +713,7 @@ class UnassignedJobs:
 		self.tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
 
 		self.status_options = ["pending", "in_progress", "completed"]
-		self.assignee_options = [i['employee_id'] for i in Employee.get_employees()]
+		self.assignee_options = [i['employee_id'] for i in Employee.get_employees_dict()]
 
 		for job in assigned_jobs:
 			self.tree.insert("", tk.END, values=job)
@@ -871,7 +886,18 @@ def spares_page():
 		
 		def buy_stocks():
 			description = description_entry.get()
-			quantity = int(quantity_entry.get())
+			part_number = part_number_entry.get()
+			quantity = quantity_entry.get()
+			
+			if not description or not part_number or not quantity:
+				tk.messagebox.showerror("Error", "All fields are mandatory!")
+				return
+			
+			try:
+				quantity = int(quantity)
+			except ValueError:
+				tk.messagebox.showerror("Error", "Quantity must be a number!")
+				return
 			
 			
 			
@@ -879,18 +905,29 @@ def spares_page():
 			for spare_part in spare_parts:
 				if spare_part["description"] != description:
 					continue
-				
 				# Update the quantity of spare part
 				spare_part["qty"] += quantity
-				# Reflect the quantity in database
-				sparesDB.update_quantity(spare_part['part_number'], spare_part['qty'])
+				spare_parts_inventory[description] = spare_part["qty"]
+				# sparesDB.update_quantity(spare_part['part_number'], spare_part['qty'])
 
-				# Updating the value in the tree
+					# Updating the value in the tree
 				for item in tree_spares.get_children():
 					if tree_spares.item(item, "values")[0] == spare_part["description"]:
-						# At the respective row (of spare part), update the value
 						tree_spares.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
 				break
+
+			save_inventory()
+				# Update the quantity of spare part
+				# spare_part["qty"] += quantity
+				# # Reflect the quantity in database
+				# sparesDB.update_quantity(spare_part['part_number'], spare_part['qty'])
+
+				# # Updating the value in the tree
+				# for item in tree_spares.get_children():
+				# 	if tree_spares.item(item, "values")[0] == spare_part["description"]:
+				# 		# At the respective row (of spare part), update the value
+				# 		tree_spares.item(item, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
+				# break
 					
 			tk.messagebox.showinfo("Success", "The stocks are bought successfully!")
 			buy_window.destroy()
@@ -925,7 +962,7 @@ def employee_page():
 		tree.heading("department", text="Department")
 		tree.pack()
 		
-		employees = Employee.get_employees()
+		employees = Employee.get_employees_dict()
 		for employee in employees:
 				tree.insert("", tk.END, values=(employee["employee_id"], employee["name"], employee["designation"],employee["department"]))
 		
