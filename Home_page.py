@@ -4,15 +4,17 @@ from tkinter import *
 from tkinter import ttk
 import re
 import json
+from datetime import datetime, timedelta
 
 from backend import *
 from spare_parts import *
+from job_queue import *
 
 # Connecting to databases
 sparesDB = SpareParts('spare_parts.db')
 
 root1=tk.Tk()
-root1.geometry("1000x500")
+root1.geometry("1150x500")
 root1.title("Vehicle Service Centre")
 options_frame=tk.Frame(root1,bg="#A89DC7")
 
@@ -99,31 +101,36 @@ def validate_fields(vehicle_number, customer_name, address, email, phone_number)
 	return True
 
 spare_parts = ["Spark plugs", "Air filter", "Oil filter", "Brake pads", "Chain sprockets", "Engine oil",
-               "Clutch cable", "Brake cable", "Tyres", "Battery"]
+			   "Clutch cable", "Brake cable", "Tyres", "Battery"]
 service_types = ["Ignition system service", "Tune-up", "Engine service", "Brake replacement",
-                 "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
+				 "Transmission service", "Brake service", "Tyre rotation", "Electrical system check"]
 spare_part_rates = {"Spark plugs": 200, "Air filter": 300, "Oil filter": 150, "Brake pads": 500,
-                    "Chain sprockets": 800, "Engine oil": 400, "Clutch cable": 100, "Brake cable": 120,
-                    "Tyres": 2000, "Battery": 1500}
+					"Chain sprockets": 800, "Engine oil": 400, "Clutch cable": 100, "Brake cable": 120,
+					"Tyres": 2000, "Battery": 1500}
 service_type_rates = {"Ignition system service": 500, "Tune-up": 600, "Engine service": 1000,
-                      "Brake replacement": 800, "Transmission service": 1200, "Brake service": 700,
-                      "Tyre rotation": 300, "Electrical system check": 400}
+					  "Brake replacement": 800, "Transmission service": 1200, "Brake service": 700,
+					  "Tyre rotation": 300, "Electrical system check": 400}
 
 spare_parts_inventory = {}
 original_inventory = {}
 
 def save_inventory():
-    with open('inventory.json', 'w') as file:
-        json.dump(spare_parts_inventory, file)
+	with open('inventory.json', 'w') as file:
+		json.dump(spare_parts_inventory, file)
 
 def load_inventory():
-    global spare_parts_inventory, original_inventory
-    try:
-        with open('inventory.json', 'r') as file:
-            spare_parts_inventory = json.load(file)
-    except FileNotFoundError:
-        spare_parts_inventory = {part: 20 for part in spare_parts}
-    original_inventory = spare_parts_inventory.copy()
+	global spare_parts_inventory, original_inventory
+	try:
+		with open('inventory.json', 'r') as file:
+			spare_parts_inventory = json.load(file)
+	except FileNotFoundError:
+		spare_parts_inventory = {part: 20 for part in spare_parts}
+	original_inventory = spare_parts_inventory.copy()
+
+def update_spare_parts_inventory(part, quantity_change):
+	global spare_parts_inventory
+	spare_parts_inventory[part] += quantity_change
+	save_inventory()
 
 def job_page():
 	root = tk.Tk()
@@ -314,6 +321,90 @@ def job_page():
 			spare_parts_inventory[part]=original_inventory[part]
 		update_combobox_values()
 
+	def create_job_card():
+		vehicle_number = vehicle_entry.get().strip()
+		customer_name = customer_entry.get().strip()
+		customer_complaint = complaint_text.get("1.0", tk.END).strip()
+		service_type = service_type_combo.get().strip()
+
+		# Validate vehicle number and customer name
+		if not validate_vehicle_number(vehicle_number):
+			messagebox.showerror("Error", "Invalid vehicle number format. Please enter in the format: TN30BX1234")
+			return
+		
+		if not validate_customer_name(customer_name):
+			messagebox.showerror("Error", "Invalid customer name. Please use only alphabets and spaces.")
+			return
+		
+		# Ensure at least one row is filled
+		rows_filled = False
+		for row in range(len(spare_part_combos)):
+			part = spare_part_combos[row].get().split(' - ')[0]
+			quantity = quantity_entries[row].get()
+			service = service_type_combos[row].get()
+			if part and quantity.isdigit() and service:
+				rows_filled = True
+				break
+			elif part and not service:
+				messagebox.showerror("Error", f"Service type is required for {part}.")
+				return
+			elif service and not part:
+				messagebox.showerror("Error", f"Spare part is required for {service}.")
+				return
+		if not rows_filled:
+			messagebox.showerror("Error", "At least one row of spare parts with quantity must be filled.")
+			return
+
+		if not service_type:
+			messagebox.showerror("Error", "Please select a service type.")
+			return
+
+		if not customer_complaint:
+			messagebox.showerror("Error", "Please enter customer complaints.")
+			return
+
+		job_id = generate_new_job_id()  # This should be a function to generate a new job ID
+		engine_number = "N/A"  # This should be collected from a relevant input if needed
+		expected_delivery_date = calculate_expected_delivery_date()  # Define how to calculate or input this
+		priority = calculate_priority()  # Define how to calculate this based on your criteria
+
+		# Create the job card object
+		job_card = JobCard(job_id, vehicle_number, customer_name, engine_number, service_type, expected_delivery_date, priority)
+
+		# Insert the job card into the database
+		insert_job_card_into_db(job_card)
+
+		messagebox.showinfo("Success", "Job card created successfully.")
+
+	def insert_job_card_into_db(job_card):
+		"""Inserts the job card into the database"""
+		db = sqlite3.connect('service-centre.db')
+		c = db.cursor()
+		c.execute("INSERT INTO jobs (job_id, vehicle_no, customer_name, engine_no, service_type, delivery_date, priority, status, assignee_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				job_card.get_data())
+		db.commit()
+		db.close()
+
+	def generate_new_job_id():
+		"""Generates a new unique job ID"""
+		db = sqlite3.connect('service-centre.db')
+		c = db.cursor()
+		c.execute("SELECT MAX(job_id) FROM jobs")
+		max_id = c.fetchone()[0]
+		new_id = (max_id if max_id is not None else 0) + 1
+		db.close()
+		return new_id
+
+	def calculate_expected_delivery_date():
+		"""Calculates or fetches the expected delivery date"""
+		# Implement your logic to calculate the expected delivery date
+		return datetime.now() + timedelta(days=7)  # Example: 7 days from now
+
+	def calculate_priority():
+		"""Calculates priority based on your criteria"""
+		# Implement your priority calculation logic here
+		return 1  # Example: priority level 1
+
 	# Input fields for customer name and vehicle number
 	input_frame = ttk.Frame(root)
 	input_frame.pack(padx=10, pady=10)
@@ -336,7 +427,7 @@ def job_page():
 	complaint_text.grid(row=3, column=1, padx=5, pady=5)
 
 	ttk.Label(input_frame, text="Service Type:").grid(row=2, column=0, padx=5, pady=5)
-	service_type_combo = ttk.Combobox(input_frame, values=["Free", "Paid", "Running"])
+	service_type_combo = ttk.Combobox(input_frame, values=["free", "paid", "running"])
 	service_type_combo.grid(row=2, column=1, padx=5, pady=5)
 
 	# Buttons for generating bill, clearing fields, and saving bill
@@ -350,7 +441,7 @@ def job_page():
 	bill_label = ttk.Label(root, text="", justify="left")
 	bill_label.pack(pady=10)
 
-	create_job_card_button = ttk.Button(input_frame, text="Create Job Card", padding=5, command=clear_fields)
+	create_job_card_button = ttk.Button(input_frame, text="Create Job Card", padding=5, command=create_job_card)
 	create_job_card_button.grid(row=6, column=1, pady=10)
 
 	# Update the scroll region
@@ -444,83 +535,229 @@ def cus_page():
 	lb.pack()
 	cus_frame.pack(pady=20)
 
+class AssignedJobs:
+	def __init__(self, root):
+		self.root = root
+
+		import sqlite3
+		conn = sqlite3.connect('service-centre.db')
+		cursor = conn.cursor()
+		assigned_jobs = list(cursor.execute("select job_id, vehicle_no, customer_name, engine_no, service_type, delivery_date, priority, status, assignee_id from jobs where (status in ('in_progress', 'pending') and assignee_id is not null)"))
+
+		self.create_treeview(assigned_jobs)
+
+	def update_job_in_database(self, job_id, field, value):
+		import sqlite3
+		conn = sqlite3.connect('service-centre.db')
+		cursor = conn.cursor()
+		cursor.execute(f"UPDATE jobs SET {field} = ? WHERE job_id = ?", (value, job_id))
+		conn.commit()
+		conn.close()
+
+	def create_treeview(self, assigned_jobs):
+		self.assign_frame = tk.Frame(self.root)
+		self.assign_frame.pack(pady=20, expand=True, fill='both')
+
+		lb = tk.Label(self.assign_frame, text="Assigned Work", font=("Arial", 15))
+		lb.pack(pady=10)
+
+		self.tree = ttk.Treeview(self.assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
+
+		self.tree.column("#0", width=0, stretch=tk.NO)
+		self.tree.column("Job ID", anchor=tk.W, width=80)
+		self.tree.column("Vehicle No", anchor=tk.W, width=120)
+		self.tree.column("Customer Name", anchor=tk.W, width=120)
+		self.tree.column("Engine No", anchor=tk.W, width=120)
+		self.tree.column("Service Type", anchor=tk.W, width=120)
+		self.tree.column("Delivery Date", anchor=tk.W, width=120)
+		self.tree.column("Priority", anchor=tk.W, width=80)
+		self.tree.column("Status", anchor=tk.W, width=100)
+		self.tree.column("Assignee ID", anchor=tk.W, width=120)
+
+		self.tree.heading("#0", text="", anchor=tk.W)
+		self.tree.heading("Job ID", text="Job ID", anchor=tk.W)
+		self.tree.heading("Vehicle No", text="Vehicle No", anchor=tk.W)
+		self.tree.heading("Customer Name", text="Customer Name", anchor=tk.W)
+		self.tree.heading("Engine No", text="Engine No", anchor=tk.W)
+		self.tree.heading("Service Type", text="Service Type", anchor=tk.W)
+		self.tree.heading("Delivery Date", text="Delivery Date", anchor=tk.W)
+		self.tree.heading("Priority", text="Priority", anchor=tk.W)
+		self.tree.heading("Status", text="Status", anchor=tk.W)
+		self.tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
+
+		self.status_options = ["pending", "in_progress", "completed"]
+		self.assignee_options = [1, 2, 3]
+
+		for job in assigned_jobs:
+			self.tree.insert("", tk.END, values=job)
+
+		self.tree.pack(expand=True, fill='both')
+
+		self.tree.bind("<Button-1>", self.on_click)
+		self.tree.bind("<FocusOut>", self.on_focus_out)
+
+	def on_click(self, event):
+		item_id = self.tree.identify_row(event.y)
+		column = self.tree.identify_column(event.x)
+
+		self.remove_dropdowns()
+
+		if column in ('#8', '#9'):  # Adjust based on your column index
+			x, y, width, height = self.tree.bbox(item_id, column)
+			if column == '#8':  # Status column
+				options = self.status_options
+				current_value = self.tree.set(item_id, "Status")
+			elif column == '#9':  # Assignee ID column
+				options = self.assignee_options
+				current_value = self.tree.set(item_id, "Assignee ID")
+
+			self.create_dropdown(x, y, width, height, options, current_value, item_id, column)
+
+	def create_dropdown(self, x, y, width, height, options, current_value, item_id, column):
+		var = tk.StringVar(value=current_value)
+		self.dropdown = ttk.Combobox(self.tree, textvariable=var, values=options, state='readonly')
+		self.dropdown.place(x=x, y=y, width=width, height=height)
+		self.dropdown.bind("<<ComboboxSelected>>", lambda event: self.update_treeview(var, item_id, column))
+
+	def update_treeview(self, var, item_id, column_name):
+		selected_item = var.get()
+		column_name_tree = self.tree.heading(column_name)["text"]
+
+		self.tree.set(item_id, column=column_name_tree, value=selected_item)
+
+		job_id = self.tree.set(item_id, column="Job ID")
+		field = column_name_tree.lower().replace(" ", "_")
+		self.update_job_in_database(job_id, field, selected_item)
+
+		if column_name == "#8" and selected_item == "completed":  # Adjust based on your column index
+			self.tree.delete(item_id)
+		
+		self.remove_dropdowns()
+
+	def remove_dropdowns(self):
+		if hasattr(self, 'dropdown') and self.dropdown.winfo_exists():
+			self.dropdown.place_forget()
+			self.dropdown.destroy()
+
+	def on_focus_out(self, event):
+		self.remove_dropdowns()
+
 def assign_page():
-	"""The page for displaying assigned jobs from treeview"""
 	assign_frame = tk.Frame(main_frame)
-	lb = tk.Label(assign_frame, text="Assigned Work", font=("Arial", 15))
-	lb.pack(pady=10)
-
-	tree = ttk.Treeview(assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
-	
-	# assigned_jobs = JobCard.get_jobs('in_progress')
-	# tree['columns'] = [i[0] for i in c.description]
-
-	assigned_jobs = [
-	(1, 'KA02AB1234', "Surya", 'AA839CC9392034', 'PAID', '2024-06-01', 1, 'pending', 1),
-	(2, 'MH12CD5678', "Geetha", 'BB937DD3492038', 'FREE', '2024-06-02', 2, 'pending', 1),
-	(3, 'RJ20EF9012', "Mughil", 'CC034EE5492039', 'PAID', '2024-06-03', 3, 'in_progress', 2),
-	(4, 'DL09GH3456', "Safrin", 'DD235FF6492040', 'FREE', '2024-06-04', 1, 'completed', 3),
-	(5, 'TN18IJ7890', "Shaheera", 'EE456GG7492041', 'PAID', '2024-06-05', 2, 'pending', 1),
-	(6, 'GJ03KL2345', "Nithyashree", 'FF567HH8492042', 'PAID', '2024-06-06', 3, 'in_progress', 2),
-	(7, 'UP17MN6789', "Ramya", 'GG678II9492043', 'FREE', '2024-06-07', 1, 'completed', 3),
-	(8, 'AP21OP1234', "Karthik", 'HH789JJ0492044', 'PAID', '2024-06-08', 2, 'pending', 1),
-	(9, 'BR05QR5678', "Sudhan", 'II890KK1492045', 'FREE', '2024-06-09', 3, 'in_progress', 2),
-	(10, 'MP29ST9012', "Hrithik Roshan", 'JJ901LL2492046', 'PAID', '2024-06-10', 1, 'completed', 1),
-	(11, 'KL07UV3456', "Kunal", 'KK012MM3492047', 'FREE', '2024-06-11', 2, 'pending', 1),
-	(12, 'HR04WX7890', "Deva", 'LL123NN4492048', 'PAID', '2024-06-12', 3, 'in_progress', 2),
-	(13, 'TG30YZ2345', "Vasanth", 'MM234OO5492049', 'FREE', '2024-06-13', 1, 'completed', 3),
-	(14, 'GJ22AB5678', "Pranav", 'NN345PP6492050', 'PAID', '2024-06-14', 2, 'pending', 1),
-	(15, 'KL11CD9012', "Poornima", 'OO456QQ7492051', 'FREE', '2024-06-15', 3, 'in_progress', 2),
-	(16, 'HR05EF3456', "Pavithran", 'PP567RR8492052', 'PAID', '2024-06-16', 1, 'completed', 1),
-	(17, 'TG28GH7890', "Painthamizhan", 'QQ678SS9492053', 'FREE', '2024-06-17', 2, 'pending', 1),
-	(18, 'GJ04IJ1234', "Sundaram", 'RR789TT0492054', 'PAID', '2024-06-18', 3, 'in_progress', 2),
-	(19, 'HR29KL5678', "Siddharth", 'SS890UU1492055', 'FREE', '2024-06-19', 1, 'completed', 3),
-	(20, 'TN08MN9012', "Monish", 'TT901VV2492056', 'PAID', '2024-06-20', 2, 'pending', 1)
-]
-
-	tree.column("#0", width=0, stretch=tk.NO)  
-	tree.column("Job ID", anchor=tk.W, width=80)
-	tree.column("Vehicle No", anchor=tk.W, width=120) 
-	tree.column("Customer Name", anchor=tk.W, width=120)
-	tree.column("Engine No", anchor=tk.W, width=120)
-	tree.column("Service Type", anchor=tk.W, width=120)
-	tree.column("Delivery Date", anchor=tk.W, width=120)
-	tree.column("Priority", anchor=tk.W, width=80)
-	tree.column("Status", anchor=tk.W, width=100)
-	tree.column("Assignee ID", anchor=tk.W, width=120)
-
-	# Headings
-	tree.heading("#0", text="", anchor=tk.W)  # Hidden heading
-	tree.heading("Job ID", text="Job ID", anchor=tk.W)
-	tree.heading("Vehicle No", text="Vehicle No", anchor=tk.W)
-	tree.heading("Customer Name", text="Customer Name", anchor=tk.W)
-	tree.heading("Engine No", text="Engine No", anchor=tk.W)
-	tree.heading("Service Type", text="Service Type", anchor=tk.W)
-	tree.heading("Delivery Date", text="Delivery Date", anchor=tk.W)
-	tree.heading("Priority", text="Priority", anchor=tk.W)
-	tree.heading("Status", text="Status", anchor=tk.W)
-	tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
-
-	# Inserting data into the treeview
-	for job in assigned_jobs:
-		tree.insert("", tk.END, values=job)
-	scrollbar = ttk.Scrollbar(assign_frame, orient="vertical", command=tree.yview)
-	tree.configure(yscrollcommand=scrollbar.set)
-	scrollbar.pack(side="right", fill="y")
-
-	hscrollbar = ttk.Scrollbar(assign_frame, orient="horizontal", command=tree.xview)
-	tree.configure(xscrollcommand=hscrollbar.set)
-	hscrollbar.pack(side="bottom", fill="x")
-
-	tree.pack(expand=True, fill='both')
-
+	assign_page_object = AssignedJobs(assign_frame)
 	assign_frame.pack(pady=20)
+
+class UnassignedJobs:
+	def __init__(self, root):
+		self.root = root
+
+		import sqlite3
+		conn = sqlite3.connect('service-centre.db')
+		cursor = conn.cursor()
+		assigned_jobs = list(cursor.execute("select job_id, vehicle_no, customer_name, engine_no, service_type, delivery_date, priority, status, assignee_id from jobs where status in ('pending') and assignee_id is null"))
+
+		self.create_treeview(assigned_jobs)
+
+	def update_job_in_database(self, job_id, field, value):
+		import sqlite3
+		conn = sqlite3.connect('service-centre.db')
+		cursor = conn.cursor()
+		cursor.execute(f"UPDATE jobs SET {field} = ? WHERE job_id = ?", (value, job_id))
+		conn.commit()
+		conn.close()
+
+	def create_treeview(self, assigned_jobs):
+		self.assign_frame = tk.Frame(self.root)
+		self.assign_frame.pack(pady=20, expand=True, fill='both')
+
+		lb = tk.Label(self.assign_frame, text="Assigned Work", font=("Arial", 15))
+		lb.pack(pady=10)
+
+		self.tree = ttk.Treeview(self.assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
+
+		self.tree.column("#0", width=0, stretch=tk.NO)
+		self.tree.column("Job ID", anchor=tk.W, width=80)
+		self.tree.column("Vehicle No", anchor=tk.W, width=120)
+		self.tree.column("Customer Name", anchor=tk.W, width=120)
+		self.tree.column("Engine No", anchor=tk.W, width=120)
+		self.tree.column("Service Type", anchor=tk.W, width=120)
+		self.tree.column("Delivery Date", anchor=tk.W, width=120)
+		self.tree.column("Priority", anchor=tk.W, width=80)
+		self.tree.column("Status", anchor=tk.W, width=100)
+		self.tree.column("Assignee ID", anchor=tk.W, width=120)
+
+		self.tree.heading("#0", text="", anchor=tk.W)
+		self.tree.heading("Job ID", text="Job ID", anchor=tk.W)
+		self.tree.heading("Vehicle No", text="Vehicle No", anchor=tk.W)
+		self.tree.heading("Customer Name", text="Customer Name", anchor=tk.W)
+		self.tree.heading("Engine No", text="Engine No", anchor=tk.W)
+		self.tree.heading("Service Type", text="Service Type", anchor=tk.W)
+		self.tree.heading("Delivery Date", text="Delivery Date", anchor=tk.W)
+		self.tree.heading("Priority", text="Priority", anchor=tk.W)
+		self.tree.heading("Status", text="Status", anchor=tk.W)
+		self.tree.heading("Assignee ID", text="Assignee ID", anchor=tk.W)
+
+		self.status_options = ["pending", "in_progress", "completed"]
+		self.assignee_options = [i['employee_id'] for i in Employee.get_employees()]
+
+		for job in assigned_jobs:
+			self.tree.insert("", tk.END, values=job)
+
+		self.tree.pack(expand=True, fill='both')
+
+		self.tree.bind("<Button-1>", self.on_click)
+		self.tree.bind("<FocusOut>", self.on_focus_out)
+
+	def on_click(self, event):
+		item_id = self.tree.identify_row(event.y)
+		column = self.tree.identify_column(event.x)
+
+		self.remove_dropdowns()
+
+		if column in ('#8', '#9'):  # Adjust based on your column index
+			x, y, width, height = self.tree.bbox(item_id, column)
+			if column == '#8':  # Status column
+				options = self.status_options
+				current_value = self.tree.set(item_id, "Status")
+			elif column == '#9':  # Assignee ID column
+				options = self.assignee_options
+				current_value = self.tree.set(item_id, "Assignee ID")
+
+			self.create_dropdown(x, y, width, height, options, current_value, item_id, column)
+
+	def create_dropdown(self, x, y, width, height, options, current_value, item_id, column):
+		var = tk.StringVar(value=current_value)
+		self.dropdown = ttk.Combobox(self.tree, textvariable=var, values=options, state='readonly')
+		self.dropdown.place(x=x, y=y, width=width, height=height)
+		self.dropdown.bind("<<ComboboxSelected>>", lambda event: self.update_treeview(var, item_id, column))
+
+	def update_treeview(self, var, item_id, column_name):
+		selected_item = var.get()
+		column_name_tree = self.tree.heading(column_name)["text"]
+
+		self.tree.set(item_id, column=column_name_tree, value=selected_item)
+
+		job_id = self.tree.set(item_id, column="Job ID")
+		field = column_name_tree.lower().replace(" ", "_")
+		self.update_job_in_database(job_id, field, selected_item)
+
+		if column_name == "#8" and selected_item == "completed":  # Adjust based on your column index
+			self.tree.delete(item_id)
+		
+		self.remove_dropdowns()
+
+	def remove_dropdowns(self):
+		if hasattr(self, 'dropdown') and self.dropdown.winfo_exists():
+			self.dropdown.place_forget()
+			self.dropdown.destroy()
+
+	def on_focus_out(self, event):
+		self.remove_dropdowns()
 
 def unassign_page():
 	unassign_frame=tk.Frame(main_frame)
-	lb=tk.Label(unassign_frame,text="Unassigned Work",font=("Ariel",15))
-	lb.pack()
 	unassign_frame.pack(pady=20)
+	unassignedFrameObject = UnassignedJobs(unassign_frame)
 
 def spares_page():
 	spares_frame=tk.Frame(main_frame)
@@ -575,7 +812,6 @@ def spares_page():
 		low_stock_tree = ttk.Treeview(low_stock_window)
 		low_stock_tree["columns"] = ("Description", "Part Number", "Rate", "Quantity")
 
-
 		low_stock_tree.column("#0", width=0, stretch=tk.NO)
 		low_stock_tree.column("Description", anchor=tk.W, width=200)
 		low_stock_tree.column("Part Number", anchor=tk.W, width=150)
@@ -587,14 +823,12 @@ def spares_page():
 		low_stock_tree.heading("Part Number", text="Part Number", anchor=tk.W)
 		low_stock_tree.heading("Rate", text="Rate", anchor=tk.E)
 		low_stock_tree.heading("Quantity", text="Quantity", anchor=tk.E)
-			
 
 		for spare_part in spare_parts:
 			if spare_part["qty"] < 5:
 				low_stock_tree.insert("", tk.END, values=(spare_part["description"], spare_part["part_number"], spare_part["rate"], spare_part["qty"]))
-				low_stock_tree.pack(fill=tk.BOTH, expand=1)
-				
-						
+
+		low_stock_tree.pack(fill=tk.BOTH, expand=1)
 						
 	low_stock_button = tk.Button(main_frame, text="View Low Stocks",font=("ariel",15),fg="#000000",command=(low_stock_window))
 	low_stock_button.place(x=350, y=350)
@@ -669,9 +903,8 @@ def spares_page():
 	lb.pack()
 	spares_frame.pack(pady=20)
 
-
 def employee_page():
-
+	"""The page containing detials of employees"""
 	employee_frame=tk.Frame(main_frame)
 	lb=tk.Label(employee_frame,text="Employee List",font=("Ariel",15))
 	lb.pack()
@@ -681,44 +914,31 @@ def employee_page():
 	details_label.pack(pady=10)
 	
 	def create_employee_list(root):
-		tree = ttk.Treeview(root, columns=("id", "name", "designation","department","experience"), show='headings')
-		tree.column("id", anchor=tk.CENTER, width=50)
-		tree.heading("id", text="ID")
+		tree = ttk.Treeview(root, columns=("employee_id", "name", "designation","department"), show='headings')
+		tree.column("employee_id", anchor=tk.CENTER, width=50)
+		tree.heading("employee_id", text="ID")
 		tree.column("name", anchor=tk.CENTER, width=100)
 		tree.heading("name", text="Name")
 		tree.column("designation", anchor=tk.CENTER, width=150)
 		tree.heading("designation", text="Designation")
 		tree.column("department", anchor=tk.CENTER, width=200)
 		tree.heading("department", text="Department")
-		tree.column("experience", anchor=tk.CENTER, width=200)
-		tree.heading("experience", text="Experience")
-
 		tree.pack()
 		
-		employees = [
-	   {"id":"088", "name": "Pranav", "designation": "Mechanic","department":"Sales","experience":"5 Years"},
-	   {"id":"085", "name": "Painthamizhan", "designation": "Customer Service","department":"Service","experience":"6 Years"},
-	   {"id":"087", "name": "Poornima", "designation": "Manager","department":"Service","experience":"8 Years"},
-	   {"id":"086", "name": "Pavithran", "designation": "Mechanic","department":"Sales","experience":"7 Years"}
-	   
-	]
-
+		employees = Employee.get_employees()
 		for employee in employees:
-				tree.insert("", tk.END, values=(employee["id"], employee["name"], employee["designation"],employee["department"],employee["experience"]))
+				tree.insert("", tk.END, values=(employee["employee_id"], employee["name"], employee["designation"],employee["department"]))
 		
 		def open_employee_details(event):
 			item = tree.item(tree.focus())
 			employee_id = item["values"][0]
-			employee = next((e for e in employees if e["id"] == employee_id), None)
+			employee = next((e for e in employees if e["employee_id"] == employee_id), None)
 			
 			if employee:
 				detail_window=tk.Toplevel(employee_frame)
 				detail_window.title("EMPLOYEE DETAILS")
-				
-				
-				
-				
-				id_label = tk.Label(detail_window, text=f"ID: {employee['id']}")
+
+				id_label = tk.Label(detail_window, text=f"ID: {employee['employee_id']}")
 				id_label.pack()
 				
 				name_label = tk.Label(detail_window, text=f"Name: {employee['name']}")
@@ -729,13 +949,7 @@ def employee_page():
 				
 				department_label = tk.Label(detail_window, text=f"Department: {employee['department']}")
 				department_label.pack()
-				
-				experience_label = tk.Label(detail_window, text=f"Experience: {employee['experience']}")
-				experience_label.pack()
-		
-		
-		
-		
+
 		tree.bind("<Double-1>", open_employee_details)
 	create_employee_list(employee_frame)
 
@@ -801,7 +1015,7 @@ main_=tk.Label(main_frame,text="The Doctor Two Wheeler Service",font=("Bold",30)
 main_.place(x=150,y=150)
 main_frame.pack(side=tk.LEFT)
 main_frame.pack_propagate(False)
-main_frame.configure(width=850,height=500)
+main_frame.configure(width=1000,height=500)
 root1.resizable(False, False) # Lock size of window
 
 root1.mainloop()

@@ -100,11 +100,21 @@ class CustomerCard:
     def __del__(self):
         self._db.close()
 
-class EmployeeCard:
+class Employee:
     def __init__(self, employee_id, name):
         self.employee_id = employee_id
         self.name = name
         self.job_list = []
+    
+    @classmethod
+    def get_employees(self):
+        """Returns the list of employees (dictionaries) from the database"""
+        _db = sqlite3.connect("service-centre.db")
+        _c = _db.cursor()
+        _c.execute("select * from employees")
+
+        rows = _c.fetchall(); cols=[i[0] for i in _c.description]
+        return [dict(zip(cols, r)) for r in rows]
 
 class JobPriorityQueue:
     def __init__(self):
@@ -163,7 +173,7 @@ if __name__=='__main__':
     priority_queue.add_job(job2)
 
     # Assign jobs to a mechanic
-    mechanic = EmployeeCard(employee_id=1, name='Mike')
+    mechanic = Employee(employee_id=1, name='Mike')
 
     while not priority_queue.is_empty():
         next_job = priority_queue.get_next_job()

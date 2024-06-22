@@ -32,8 +32,9 @@ class SpareParts:
 
     def update_quantity(self, part_number, qty):
         """Update the quantity of the spare part (with part_number as the key)"""
+        self._c.execute("SELECT part_number FROM spare_parts")
 
-        sparepart_numbers = list(self._c.execute("SELECT part_number FROM spare_parts"))
+        sparepart_numbers = list(i[0] for i in self._c.fetchall()) # converting a list of tuples (of rows) into just a list
 
         if part_number not in sparepart_numbers:
             raise ValueError("The Part number does not exist")
