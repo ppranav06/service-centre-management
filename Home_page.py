@@ -685,7 +685,7 @@ class UnassignedJobs:
 		self.assign_frame = tk.Frame(self.root)
 		self.assign_frame.pack(pady=20, expand=True, fill='both')
 
-		lb = tk.Label(self.assign_frame, text="Assigned Work", font=("Arial", 15))
+		lb = tk.Label(self.assign_frame, text="Unassigned Work", font=("Arial", 15))
 		lb.pack(pady=10)
 
 		self.tree = ttk.Treeview(self.assign_frame, columns=("Job ID", "Vehicle No", "Customer Name", "Engine No", "Service Type", "Delivery Date", "Priority", "Status", "Assignee ID"))
